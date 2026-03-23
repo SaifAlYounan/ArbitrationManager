@@ -344,6 +344,378 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /cases/{caseId}/rate-card:
+    get:
+      operationId: listRateCard
+      tags: [costs]
+      summary: List team rate card members for a case
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of rate card members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RateCardMember"
+    post:
+      operationId: addRateCardMember
+      tags: [costs]
+      summary: Add a team member to the rate card
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRateCardMemberRequest"
+      responses:
+        "201":
+          description: Rate card member created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateCardMember"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/rate-card/{memberId}:
+    put:
+      operationId: updateRateCardMember
+      tags: [costs]
+      summary: Update a rate card member
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRateCardMemberRequest"
+      responses:
+        "200":
+          description: Updated member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateCardMember"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteRateCardMember
+      tags: [costs]
+      summary: Remove a team member from the rate card
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/time-entries:
+    get:
+      operationId: listTimeEntries
+      tags: [costs]
+      summary: List time entries for a case
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of time entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TimeEntry"
+    post:
+      operationId: addTimeEntry
+      tags: [costs]
+      summary: Log a time entry
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTimeEntryRequest"
+      responses:
+        "201":
+          description: Time entry created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimeEntry"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/time-entries/{entryId}:
+    put:
+      operationId: updateTimeEntry
+      tags: [costs]
+      summary: Update a time entry
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: entryId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTimeEntryRequest"
+      responses:
+        "200":
+          description: Updated entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimeEntry"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteTimeEntry
+      tags: [costs]
+      summary: Delete a time entry
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: entryId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/disbursements:
+    get:
+      operationId: listDisbursements
+      tags: [costs]
+      summary: List disbursements for a case
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of disbursements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Disbursement"
+    post:
+      operationId: addDisbursement
+      tags: [costs]
+      summary: Log a disbursement
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDisbursementRequest"
+      responses:
+        "201":
+          description: Disbursement created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Disbursement"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/disbursements/{disbId}:
+    put:
+      operationId: updateDisbursement
+      tags: [costs]
+      summary: Update a disbursement
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: disbId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDisbursementRequest"
+      responses:
+        "200":
+          description: Updated disbursement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Disbursement"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteDisbursement
+      tags: [costs]
+      summary: Delete a disbursement
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: disbId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/costs-settings:
+    get:
+      operationId: getCostsSettings
+      tags: [costs]
+      summary: Get costs settings for a case (ICC advance, budget)
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Costs settings (or defaults if not yet set)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CostsSettings"
+    put:
+      operationId: upsertCostsSettings
+      tags: [costs]
+      summary: Create or update costs settings for a case
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCostsSettingsRequest"
+      responses:
+        "200":
+          description: Updated costs settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CostsSettings"
+
   /cases/{caseId}/hearings:
     get:
       operationId: listHearings
@@ -1348,6 +1720,268 @@ components:
         - status
         - createdAt
         - updatedAt
+
+    CostPhase:
+      type: string
+      enum:
+        - Pre-Arbitration
+        - Written Submissions
+        - Document Production
+        - Hearing Preparation
+        - Hearing
+        - Post-Hearing
+        - Settlement/Negotiation
+        - General Case Management
+
+    DisbursementCategory:
+      type: string
+      enum:
+        - Travel
+        - Expert Fees
+        - Translation
+        - Tribunal Fees
+        - ICC Administrative Costs
+        - Courier
+        - Other
+
+    CostParty:
+      type: string
+      enum:
+        - Claimant
+        - Respondent
+
+    RateCardMember:
+      type: object
+      properties:
+        id:
+          type: integer
+        caseId:
+          type: integer
+        name:
+          type: string
+        role:
+          type: string
+        hourlyRate:
+          type: string
+        currency:
+          type: string
+        party:
+          $ref: "#/components/schemas/CostParty"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - caseId
+        - name
+        - role
+        - hourlyRate
+        - currency
+        - party
+        - createdAt
+
+    CreateRateCardMemberRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+        hourlyRate:
+          type: string
+        currency:
+          type: string
+        party:
+          $ref: "#/components/schemas/CostParty"
+      required:
+        - name
+        - role
+        - hourlyRate
+        - currency
+        - party
+
+    TimeEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        caseId:
+          type: integer
+        rateCardId:
+          type: integer
+          nullable: true
+        memberName:
+          type: string
+        date:
+          type: string
+          format: date
+        hours:
+          type: string
+        phase:
+          $ref: "#/components/schemas/CostPhase"
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - caseId
+        - memberName
+        - date
+        - hours
+        - phase
+        - description
+        - createdAt
+
+    CreateTimeEntryRequest:
+      type: object
+      properties:
+        rateCardId:
+          type: integer
+          nullable: true
+        memberName:
+          type: string
+        date:
+          type: string
+          format: date
+        hours:
+          type: string
+        phase:
+          $ref: "#/components/schemas/CostPhase"
+        description:
+          type: string
+      required:
+        - memberName
+        - date
+        - hours
+        - phase
+        - description
+
+    Disbursement:
+      type: object
+      properties:
+        id:
+          type: integer
+        caseId:
+          type: integer
+        category:
+          $ref: "#/components/schemas/DisbursementCategory"
+        amount:
+          type: string
+        currency:
+          type: string
+        date:
+          type: string
+          format: date
+        description:
+          type: string
+        docRef:
+          type: string
+          nullable: true
+        party:
+          $ref: "#/components/schemas/CostParty"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - caseId
+        - category
+        - amount
+        - currency
+        - date
+        - description
+        - party
+        - createdAt
+
+    CreateDisbursementRequest:
+      type: object
+      properties:
+        category:
+          $ref: "#/components/schemas/DisbursementCategory"
+        amount:
+          type: string
+        currency:
+          type: string
+        date:
+          type: string
+          format: date
+        description:
+          type: string
+        docRef:
+          type: string
+          nullable: true
+        party:
+          $ref: "#/components/schemas/CostParty"
+      required:
+        - category
+        - amount
+        - currency
+        - date
+        - description
+        - party
+
+    CostsSettings:
+      type: object
+      properties:
+        id:
+          type: integer
+        caseId:
+          type: integer
+        iccAdvanceAmount:
+          type: string
+          nullable: true
+        iccCurrency:
+          type: string
+        claimantPaid:
+          type: string
+        respondentPaid:
+          type: string
+        totalBudget:
+          type: string
+          nullable: true
+        budgetCurrency:
+          type: string
+        notes:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - caseId
+        - iccCurrency
+        - claimantPaid
+        - respondentPaid
+        - budgetCurrency
+        - updatedAt
+
+    UpdateCostsSettingsRequest:
+      type: object
+      properties:
+        iccAdvanceAmount:
+          type: string
+          nullable: true
+        iccCurrency:
+          type: string
+        claimantPaid:
+          type: string
+        respondentPaid:
+          type: string
+        totalBudget:
+          type: string
+          nullable: true
+        budgetCurrency:
+          type: string
+        notes:
+          type: string
+          nullable: true
+      required:
+        - iccCurrency
+        - claimantPaid
+        - respondentPaid
+        - budgetCurrency
 
     HearingType:
       type: string

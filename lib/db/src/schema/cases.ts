@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, boolean, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -155,3 +155,64 @@ export const hearingChecklistTable = pgTable("hearing_checklist", {
 export const insertHearingChecklistSchema = createInsertSchema(hearingChecklistTable).omit({ id: true, createdAt: true });
 export type InsertHearingChecklist = z.infer<typeof insertHearingChecklistSchema>;
 export type HearingChecklist = typeof hearingChecklistTable.$inferSelect;
+
+export const rateCardTable = pgTable("rate_card", {
+  id: serial("id").primaryKey(),
+  caseId: integer("case_id").notNull().references(() => casesTable.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  role: text("role").notNull(),
+  hourlyRate: numeric("hourly_rate", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("USD"),
+  party: text("party").notNull().default("Claimant"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const insertRateCardSchema = createInsertSchema(rateCardTable).omit({ id: true, createdAt: true });
+export type InsertRateCard = z.infer<typeof insertRateCardSchema>;
+export type RateCard = typeof rateCardTable.$inferSelect;
+
+export const timeEntriesTable = pgTable("time_entries", {
+  id: serial("id").primaryKey(),
+  caseId: integer("case_id").notNull().references(() => casesTable.id, { onDelete: "cascade" }),
+  rateCardId: integer("rate_card_id").references(() => rateCardTable.id, { onDelete: "set null" }),
+  memberName: text("member_name").notNull(),
+  date: text("date").notNull(),
+  hours: numeric("hours", { precision: 6, scale: 2 }).notNull(),
+  phase: text("phase").notNull(),
+  description: text("description").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const insertTimeEntrySchema = createInsertSchema(timeEntriesTable).omit({ id: true, createdAt: true });
+export type InsertTimeEntry = z.infer<typeof insertTimeEntrySchema>;
+export type TimeEntry = typeof timeEntriesTable.$inferSelect;
+
+export const disbursementsTable = pgTable("disbursements", {
+  id: serial("id").primaryKey(),
+  caseId: integer("case_id").notNull().references(() => casesTable.id, { onDelete: "cascade" }),
+  category: text("category").notNull(),
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("USD"),
+  date: text("date").notNull(),
+  description: text("description").notNull(),
+  docRef: text("doc_ref"),
+  party: text("party").notNull().default("Claimant"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const insertDisbursementSchema = createInsertSchema(disbursementsTable).omit({ id: true, createdAt: true });
+export type InsertDisbursement = z.infer<typeof insertDisbursementSchema>;
+export type Disbursement = typeof disbursementsTable.$inferSelect;
+
+export const costsSettingsTable = pgTable("costs_settings", {
+  id: serial("id").primaryKey(),
+  caseId: integer("case_id").notNull().unique().references(() => casesTable.id, { onDelete: "cascade" }),
+  iccAdvanceAmount: numeric("icc_advance_amount", { precision: 12, scale: 2 }),
+  iccCurrency: text("icc_currency").notNull().default("USD"),
+  claimantPaid: numeric("claimant_paid", { precision: 12, scale: 2 }).notNull().default("0"),
+  respondentPaid: numeric("respondent_paid", { precision: 12, scale: 2 }).notNull().default("0"),
+  totalBudget: numeric("total_budget", { precision: 12, scale: 2 }),
+  budgetCurrency: text("budget_currency").notNull().default("USD"),
+  notes: text("notes"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+export const insertCostsSettingsSchema = createInsertSchema(costsSettingsTable).omit({ id: true });
+export type InsertCostsSettings = z.infer<typeof insertCostsSettingsSchema>;
+export type CostsSettings = typeof costsSettingsTable.$inferSelect;

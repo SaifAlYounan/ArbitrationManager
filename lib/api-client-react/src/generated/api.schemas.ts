@@ -163,6 +163,125 @@ export interface Deadline {
   updatedAt: string;
 }
 
+export type CostPhase = (typeof CostPhase)[keyof typeof CostPhase];
+
+export const CostPhase = {
+  "Pre-Arbitration": "Pre-Arbitration",
+  Written_Submissions: "Written Submissions",
+  Document_Production: "Document Production",
+  Hearing_Preparation: "Hearing Preparation",
+  Hearing: "Hearing",
+  "Post-Hearing": "Post-Hearing",
+  "Settlement/Negotiation": "Settlement/Negotiation",
+  General_Case_Management: "General Case Management",
+} as const;
+
+export type DisbursementCategory =
+  (typeof DisbursementCategory)[keyof typeof DisbursementCategory];
+
+export const DisbursementCategory = {
+  Travel: "Travel",
+  Expert_Fees: "Expert Fees",
+  Translation: "Translation",
+  Tribunal_Fees: "Tribunal Fees",
+  ICC_Administrative_Costs: "ICC Administrative Costs",
+  Courier: "Courier",
+  Other: "Other",
+} as const;
+
+export type CostParty = (typeof CostParty)[keyof typeof CostParty];
+
+export const CostParty = {
+  Claimant: "Claimant",
+  Respondent: "Respondent",
+} as const;
+
+export interface RateCardMember {
+  id: number;
+  caseId: number;
+  name: string;
+  role: string;
+  hourlyRate: string;
+  currency: string;
+  party: CostParty;
+  createdAt: string;
+}
+
+export interface CreateRateCardMemberRequest {
+  name: string;
+  role: string;
+  hourlyRate: string;
+  currency: string;
+  party: CostParty;
+}
+
+export interface TimeEntry {
+  id: number;
+  caseId: number;
+  rateCardId?: number | null;
+  memberName: string;
+  date: string;
+  hours: string;
+  phase: CostPhase;
+  description: string;
+  createdAt: string;
+}
+
+export interface CreateTimeEntryRequest {
+  rateCardId?: number | null;
+  memberName: string;
+  date: string;
+  hours: string;
+  phase: CostPhase;
+  description: string;
+}
+
+export interface Disbursement {
+  id: number;
+  caseId: number;
+  category: DisbursementCategory;
+  amount: string;
+  currency: string;
+  date: string;
+  description: string;
+  docRef?: string | null;
+  party: CostParty;
+  createdAt: string;
+}
+
+export interface CreateDisbursementRequest {
+  category: DisbursementCategory;
+  amount: string;
+  currency: string;
+  date: string;
+  description: string;
+  docRef?: string | null;
+  party: CostParty;
+}
+
+export interface CostsSettings {
+  id?: number;
+  caseId: number;
+  iccAdvanceAmount?: string | null;
+  iccCurrency: string;
+  claimantPaid: string;
+  respondentPaid: string;
+  totalBudget?: string | null;
+  budgetCurrency: string;
+  notes?: string | null;
+  updatedAt: string;
+}
+
+export interface UpdateCostsSettingsRequest {
+  iccAdvanceAmount?: string | null;
+  iccCurrency: string;
+  claimantPaid: string;
+  respondentPaid: string;
+  totalBudget?: string | null;
+  budgetCurrency: string;
+  notes?: string | null;
+}
+
 export type HearingType = (typeof HearingType)[keyof typeof HearingType];
 
 export const HearingType = {

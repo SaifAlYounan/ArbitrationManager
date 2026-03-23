@@ -77,14 +77,30 @@ A professional web app for managing ICC international arbitration cases.
 - Add/Edit deadline modal with Extended status prompting an extension PO reference
 - One-click complete/reopen (CheckCircle2 toggle) and delete (with confirm)
 
+### Costs Tracker Tab (7th tab)
+
+- **Team Rate Card**: define team members with name, role, hourly rate, currency, party (Claimant/Respondent). Edit and remove members.
+- **Time Entries**: log time by date, hours, phase (8-item dropdown), description; linked to rate card member for automatic cost calculation. Phase filter and running totals shown.
+- **Disbursements**: log non-time costs with category (7-item: Travel, Expert Fees, Translation, Tribunal Fees, ICC Administrative Costs, Courier, Other), amount, currency, date, description, document reference, and party.
+- **ICC Advance on Costs**: record ICC advance amount, claimant/respondent payments, total budget. Auto-flags parties behind on payment (paid < advance/2). Balance outstanding displayed.
+- **Costs Summary**: stat cards (time costs, disbursements, grand total, % of budget), budget progress bar, recharts BarChart by phase, per-member bar breakdown, Claimant/Respondent side cards, ICC advance panel.
+- **Generate Costs Statement**: opens a printable HTML document in a new tab with PART I (time entries by phase), PART II (disbursements), grand total summary, team rate card annexure, and a print button.
+
 ### Database Schema
 
-Four PostgreSQL tables via Drizzle ORM:
+PostgreSQL tables via Drizzle ORM:
 
 - `cases` — core case fields (reference, name, parties, seat, language, rules, date, currency, status)
 - `tribunal_members` — arbitrators linked to a case (name, role, email, timezone)
 - `representatives` — party representatives linked to a case (name, firm, role, party, email, timezone)
 - `deadlines` — procedural deadlines linked to a case (description, responsible party, due date, original due date, status, PO refs, notes)
+- `procedural_orders` — procedural orders (number, title, date, status, content, categories)
+- `hearings` — hearing session details (type, date/time, location, platform, seat, timezone, notes)
+- `hearing_participants` / `witness_schedule` / `hearing_checklist` — hearing sub-tables
+- `rate_card` — team member hourly rates per case (name, role, hourlyRate, currency, party)
+- `time_entries` — time logs per case (date, hours, phase, description, rateCardId FK)
+- `disbursements` — non-time costs per case (category, amount, currency, date, description, docRef, party)
+- `costs_settings` — per-case ICC advance and budget settings (iccAdvanceAmount, claimantPaid, respondentPaid, totalBudget, budgetCurrency, notes)
 
 ### API Endpoints (Express, prefixed at `/api`)
 
@@ -98,6 +114,14 @@ Four PostgreSQL tables via Drizzle ORM:
 - `PUT/DELETE /api/cases/:caseId/representatives/:repId`
 - `GET/POST /api/cases/:caseId/deadlines` — manage procedural deadlines
 - `PUT/DELETE /api/cases/:caseId/deadlines/:deadlineId`
+- `GET/POST /api/cases/:caseId/rate-card` — team rate card
+- `PUT/DELETE /api/cases/:caseId/rate-card/:memberId`
+- `GET/POST /api/cases/:caseId/time-entries` — time entries
+- `PUT/DELETE /api/cases/:caseId/time-entries/:entryId`
+- `GET/POST /api/cases/:caseId/disbursements` — disbursements
+- `PUT/DELETE /api/cases/:caseId/disbursements/:disbId`
+- `GET /api/cases/:caseId/costs-settings` — get costs settings (returns defaults if not set)
+- `PUT /api/cases/:caseId/costs-settings` — upsert costs settings
 
 ### Important Notes
 

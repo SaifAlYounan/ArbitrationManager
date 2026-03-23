@@ -307,6 +307,345 @@ export const DeleteRepresentativeParams = zod.object({
 });
 
 /**
+ * @summary List team rate card members for a case
+ */
+export const ListRateCardParams = zod.object({
+  caseId: zod.coerce.number(),
+});
+
+export const ListRateCardResponseItem = zod.object({
+  id: zod.number(),
+  caseId: zod.number(),
+  name: zod.string(),
+  role: zod.string(),
+  hourlyRate: zod.string(),
+  currency: zod.string(),
+  party: zod.enum(["Claimant", "Respondent"]),
+  createdAt: zod.date(),
+});
+export const ListRateCardResponse = zod.array(ListRateCardResponseItem);
+
+/**
+ * @summary Add a team member to the rate card
+ */
+export const AddRateCardMemberParams = zod.object({
+  caseId: zod.coerce.number(),
+});
+
+export const AddRateCardMemberBody = zod.object({
+  name: zod.string(),
+  role: zod.string(),
+  hourlyRate: zod.string(),
+  currency: zod.string(),
+  party: zod.enum(["Claimant", "Respondent"]),
+});
+
+/**
+ * @summary Update a rate card member
+ */
+export const UpdateRateCardMemberParams = zod.object({
+  caseId: zod.coerce.number(),
+  memberId: zod.coerce.number(),
+});
+
+export const UpdateRateCardMemberBody = zod.object({
+  name: zod.string(),
+  role: zod.string(),
+  hourlyRate: zod.string(),
+  currency: zod.string(),
+  party: zod.enum(["Claimant", "Respondent"]),
+});
+
+export const UpdateRateCardMemberResponse = zod.object({
+  id: zod.number(),
+  caseId: zod.number(),
+  name: zod.string(),
+  role: zod.string(),
+  hourlyRate: zod.string(),
+  currency: zod.string(),
+  party: zod.enum(["Claimant", "Respondent"]),
+  createdAt: zod.date(),
+});
+
+/**
+ * @summary Remove a team member from the rate card
+ */
+export const DeleteRateCardMemberParams = zod.object({
+  caseId: zod.coerce.number(),
+  memberId: zod.coerce.number(),
+});
+
+/**
+ * @summary List time entries for a case
+ */
+export const ListTimeEntriesParams = zod.object({
+  caseId: zod.coerce.number(),
+});
+
+export const ListTimeEntriesResponseItem = zod.object({
+  id: zod.number(),
+  caseId: zod.number(),
+  rateCardId: zod.number().nullish(),
+  memberName: zod.string(),
+  date: zod.date(),
+  hours: zod.string(),
+  phase: zod.enum([
+    "Pre-Arbitration",
+    "Written Submissions",
+    "Document Production",
+    "Hearing Preparation",
+    "Hearing",
+    "Post-Hearing",
+    "Settlement/Negotiation",
+    "General Case Management",
+  ]),
+  description: zod.string(),
+  createdAt: zod.date(),
+});
+export const ListTimeEntriesResponse = zod.array(ListTimeEntriesResponseItem);
+
+/**
+ * @summary Log a time entry
+ */
+export const AddTimeEntryParams = zod.object({
+  caseId: zod.coerce.number(),
+});
+
+export const AddTimeEntryBody = zod.object({
+  rateCardId: zod.number().nullish(),
+  memberName: zod.string(),
+  date: zod.date(),
+  hours: zod.string(),
+  phase: zod.enum([
+    "Pre-Arbitration",
+    "Written Submissions",
+    "Document Production",
+    "Hearing Preparation",
+    "Hearing",
+    "Post-Hearing",
+    "Settlement/Negotiation",
+    "General Case Management",
+  ]),
+  description: zod.string(),
+});
+
+/**
+ * @summary Update a time entry
+ */
+export const UpdateTimeEntryParams = zod.object({
+  caseId: zod.coerce.number(),
+  entryId: zod.coerce.number(),
+});
+
+export const UpdateTimeEntryBody = zod.object({
+  rateCardId: zod.number().nullish(),
+  memberName: zod.string(),
+  date: zod.date(),
+  hours: zod.string(),
+  phase: zod.enum([
+    "Pre-Arbitration",
+    "Written Submissions",
+    "Document Production",
+    "Hearing Preparation",
+    "Hearing",
+    "Post-Hearing",
+    "Settlement/Negotiation",
+    "General Case Management",
+  ]),
+  description: zod.string(),
+});
+
+export const UpdateTimeEntryResponse = zod.object({
+  id: zod.number(),
+  caseId: zod.number(),
+  rateCardId: zod.number().nullish(),
+  memberName: zod.string(),
+  date: zod.date(),
+  hours: zod.string(),
+  phase: zod.enum([
+    "Pre-Arbitration",
+    "Written Submissions",
+    "Document Production",
+    "Hearing Preparation",
+    "Hearing",
+    "Post-Hearing",
+    "Settlement/Negotiation",
+    "General Case Management",
+  ]),
+  description: zod.string(),
+  createdAt: zod.date(),
+});
+
+/**
+ * @summary Delete a time entry
+ */
+export const DeleteTimeEntryParams = zod.object({
+  caseId: zod.coerce.number(),
+  entryId: zod.coerce.number(),
+});
+
+/**
+ * @summary List disbursements for a case
+ */
+export const ListDisbursementsParams = zod.object({
+  caseId: zod.coerce.number(),
+});
+
+export const ListDisbursementsResponseItem = zod.object({
+  id: zod.number(),
+  caseId: zod.number(),
+  category: zod.enum([
+    "Travel",
+    "Expert Fees",
+    "Translation",
+    "Tribunal Fees",
+    "ICC Administrative Costs",
+    "Courier",
+    "Other",
+  ]),
+  amount: zod.string(),
+  currency: zod.string(),
+  date: zod.date(),
+  description: zod.string(),
+  docRef: zod.string().nullish(),
+  party: zod.enum(["Claimant", "Respondent"]),
+  createdAt: zod.date(),
+});
+export const ListDisbursementsResponse = zod.array(
+  ListDisbursementsResponseItem,
+);
+
+/**
+ * @summary Log a disbursement
+ */
+export const AddDisbursementParams = zod.object({
+  caseId: zod.coerce.number(),
+});
+
+export const AddDisbursementBody = zod.object({
+  category: zod.enum([
+    "Travel",
+    "Expert Fees",
+    "Translation",
+    "Tribunal Fees",
+    "ICC Administrative Costs",
+    "Courier",
+    "Other",
+  ]),
+  amount: zod.string(),
+  currency: zod.string(),
+  date: zod.date(),
+  description: zod.string(),
+  docRef: zod.string().nullish(),
+  party: zod.enum(["Claimant", "Respondent"]),
+});
+
+/**
+ * @summary Update a disbursement
+ */
+export const UpdateDisbursementParams = zod.object({
+  caseId: zod.coerce.number(),
+  disbId: zod.coerce.number(),
+});
+
+export const UpdateDisbursementBody = zod.object({
+  category: zod.enum([
+    "Travel",
+    "Expert Fees",
+    "Translation",
+    "Tribunal Fees",
+    "ICC Administrative Costs",
+    "Courier",
+    "Other",
+  ]),
+  amount: zod.string(),
+  currency: zod.string(),
+  date: zod.date(),
+  description: zod.string(),
+  docRef: zod.string().nullish(),
+  party: zod.enum(["Claimant", "Respondent"]),
+});
+
+export const UpdateDisbursementResponse = zod.object({
+  id: zod.number(),
+  caseId: zod.number(),
+  category: zod.enum([
+    "Travel",
+    "Expert Fees",
+    "Translation",
+    "Tribunal Fees",
+    "ICC Administrative Costs",
+    "Courier",
+    "Other",
+  ]),
+  amount: zod.string(),
+  currency: zod.string(),
+  date: zod.date(),
+  description: zod.string(),
+  docRef: zod.string().nullish(),
+  party: zod.enum(["Claimant", "Respondent"]),
+  createdAt: zod.date(),
+});
+
+/**
+ * @summary Delete a disbursement
+ */
+export const DeleteDisbursementParams = zod.object({
+  caseId: zod.coerce.number(),
+  disbId: zod.coerce.number(),
+});
+
+/**
+ * @summary Get costs settings for a case (ICC advance, budget)
+ */
+export const GetCostsSettingsParams = zod.object({
+  caseId: zod.coerce.number(),
+});
+
+export const GetCostsSettingsResponse = zod.object({
+  id: zod.number().optional(),
+  caseId: zod.number(),
+  iccAdvanceAmount: zod.string().nullish(),
+  iccCurrency: zod.string(),
+  claimantPaid: zod.string(),
+  respondentPaid: zod.string(),
+  totalBudget: zod.string().nullish(),
+  budgetCurrency: zod.string(),
+  notes: zod.string().nullish(),
+  updatedAt: zod.date(),
+});
+
+/**
+ * @summary Create or update costs settings for a case
+ */
+export const UpsertCostsSettingsParams = zod.object({
+  caseId: zod.coerce.number(),
+});
+
+export const UpsertCostsSettingsBody = zod.object({
+  iccAdvanceAmount: zod.string().nullish(),
+  iccCurrency: zod.string(),
+  claimantPaid: zod.string(),
+  respondentPaid: zod.string(),
+  totalBudget: zod.string().nullish(),
+  budgetCurrency: zod.string(),
+  notes: zod.string().nullish(),
+});
+
+export const UpsertCostsSettingsResponse = zod.object({
+  id: zod.number().optional(),
+  caseId: zod.number(),
+  iccAdvanceAmount: zod.string().nullish(),
+  iccCurrency: zod.string(),
+  claimantPaid: zod.string(),
+  respondentPaid: zod.string(),
+  totalBudget: zod.string().nullish(),
+  budgetCurrency: zod.string(),
+  notes: zod.string().nullish(),
+  updatedAt: zod.date(),
+});
+
+/**
  * @summary List hearings for a case
  */
 export const ListHearingsParams = zod.object({

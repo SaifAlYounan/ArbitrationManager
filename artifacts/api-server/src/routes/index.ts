@@ -4,6 +4,7 @@ import casesRouter from "./cases";
 import deadlinesRouter from "./deadlines";
 import proceduralOrdersRouter from "./proceduralOrders";
 import hearingsRouter from "./hearings";
+import costsRouter from "./costs";
 
 const router: IRouter = Router();
 
@@ -12,5 +13,6 @@ router.use(casesRouter);
 router.use(deadlinesRouter);
 router.use(proceduralOrdersRouter);
 router.use(hearingsRouter);
+router.use(costsRouter);
 
 export default router;

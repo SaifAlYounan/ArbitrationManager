@@ -20,25 +20,33 @@ import type {
   ApplyPoToDeadlinesRequest,
   Case,
   CaseDetail,
+  CostsSettings,
   CreateCaseRequest,
   CreateChecklistItemRequest,
   CreateDeadlineRequest,
+  CreateDisbursementRequest,
   CreateHearingRequest,
   CreateParticipantRequest,
   CreateProceduralOrderRequest,
+  CreateRateCardMemberRequest,
   CreateRepresentativeRequest,
+  CreateTimeEntryRequest,
   CreateTribunalMemberRequest,
   CreateWitnessScheduleRequest,
   Deadline,
+  Disbursement,
   ErrorResponse,
   HealthStatus,
   Hearing,
   HearingChecklistItem,
   HearingParticipant,
   ProceduralOrder,
+  RateCardMember,
   Representative,
+  TimeEntry,
   TribunalMember,
   UpdateChecklistItemRequest,
+  UpdateCostsSettingsRequest,
   WitnessScheduleEntry,
 } from "./api.schemas";
 
@@ -1194,6 +1202,1268 @@ export const useDeleteRepresentative = <
   TContext
 > => {
   return useMutation(getDeleteRepresentativeMutationOptions(options));
+};
+
+/**
+ * @summary List team rate card members for a case
+ */
+export const getListRateCardUrl = (caseId: number) => {
+  return `/api/cases/${caseId}/rate-card`;
+};
+
+export const listRateCard = async (
+  caseId: number,
+  options?: RequestInit,
+): Promise<RateCardMember[]> => {
+  return customFetch<RateCardMember[]>(getListRateCardUrl(caseId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListRateCardQueryKey = (caseId: number) => {
+  return [`/api/cases/${caseId}/rate-card`] as const;
+};
+
+export const getListRateCardQueryOptions = <
+  TData = Awaited<ReturnType<typeof listRateCard>>,
+  TError = ErrorType<unknown>,
+>(
+  caseId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listRateCard>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListRateCardQueryKey(caseId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listRateCard>>> = ({
+    signal,
+  }) => listRateCard(caseId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!caseId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listRateCard>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListRateCardQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listRateCard>>
+>;
+export type ListRateCardQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List team rate card members for a case
+ */
+
+export function useListRateCard<
+  TData = Awaited<ReturnType<typeof listRateCard>>,
+  TError = ErrorType<unknown>,
+>(
+  caseId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listRateCard>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListRateCardQueryOptions(caseId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Add a team member to the rate card
+ */
+export const getAddRateCardMemberUrl = (caseId: number) => {
+  return `/api/cases/${caseId}/rate-card`;
+};
+
+export const addRateCardMember = async (
+  caseId: number,
+  createRateCardMemberRequest: CreateRateCardMemberRequest,
+  options?: RequestInit,
+): Promise<RateCardMember> => {
+  return customFetch<RateCardMember>(getAddRateCardMemberUrl(caseId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createRateCardMemberRequest),
+  });
+};
+
+export const getAddRateCardMemberMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addRateCardMember>>,
+    TError,
+    { caseId: number; data: BodyType<CreateRateCardMemberRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addRateCardMember>>,
+  TError,
+  { caseId: number; data: BodyType<CreateRateCardMemberRequest> },
+  TContext
+> => {
+  const mutationKey = ["addRateCardMember"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addRateCardMember>>,
+    { caseId: number; data: BodyType<CreateRateCardMemberRequest> }
+  > = (props) => {
+    const { caseId, data } = props ?? {};
+
+    return addRateCardMember(caseId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddRateCardMemberMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addRateCardMember>>
+>;
+export type AddRateCardMemberMutationBody =
+  BodyType<CreateRateCardMemberRequest>;
+export type AddRateCardMemberMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Add a team member to the rate card
+ */
+export const useAddRateCardMember = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addRateCardMember>>,
+    TError,
+    { caseId: number; data: BodyType<CreateRateCardMemberRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addRateCardMember>>,
+  TError,
+  { caseId: number; data: BodyType<CreateRateCardMemberRequest> },
+  TContext
+> => {
+  return useMutation(getAddRateCardMemberMutationOptions(options));
+};
+
+/**
+ * @summary Update a rate card member
+ */
+export const getUpdateRateCardMemberUrl = (
+  caseId: number,
+  memberId: number,
+) => {
+  return `/api/cases/${caseId}/rate-card/${memberId}`;
+};
+
+export const updateRateCardMember = async (
+  caseId: number,
+  memberId: number,
+  createRateCardMemberRequest: CreateRateCardMemberRequest,
+  options?: RequestInit,
+): Promise<RateCardMember> => {
+  return customFetch<RateCardMember>(
+    getUpdateRateCardMemberUrl(caseId, memberId),
+    {
+      ...options,
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(createRateCardMemberRequest),
+    },
+  );
+};
+
+export const getUpdateRateCardMemberMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateRateCardMember>>,
+    TError,
+    {
+      caseId: number;
+      memberId: number;
+      data: BodyType<CreateRateCardMemberRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateRateCardMember>>,
+  TError,
+  {
+    caseId: number;
+    memberId: number;
+    data: BodyType<CreateRateCardMemberRequest>;
+  },
+  TContext
+> => {
+  const mutationKey = ["updateRateCardMember"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateRateCardMember>>,
+    {
+      caseId: number;
+      memberId: number;
+      data: BodyType<CreateRateCardMemberRequest>;
+    }
+  > = (props) => {
+    const { caseId, memberId, data } = props ?? {};
+
+    return updateRateCardMember(caseId, memberId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateRateCardMemberMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateRateCardMember>>
+>;
+export type UpdateRateCardMemberMutationBody =
+  BodyType<CreateRateCardMemberRequest>;
+export type UpdateRateCardMemberMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update a rate card member
+ */
+export const useUpdateRateCardMember = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateRateCardMember>>,
+    TError,
+    {
+      caseId: number;
+      memberId: number;
+      data: BodyType<CreateRateCardMemberRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateRateCardMember>>,
+  TError,
+  {
+    caseId: number;
+    memberId: number;
+    data: BodyType<CreateRateCardMemberRequest>;
+  },
+  TContext
+> => {
+  return useMutation(getUpdateRateCardMemberMutationOptions(options));
+};
+
+/**
+ * @summary Remove a team member from the rate card
+ */
+export const getDeleteRateCardMemberUrl = (
+  caseId: number,
+  memberId: number,
+) => {
+  return `/api/cases/${caseId}/rate-card/${memberId}`;
+};
+
+export const deleteRateCardMember = async (
+  caseId: number,
+  memberId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteRateCardMemberUrl(caseId, memberId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteRateCardMemberMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteRateCardMember>>,
+    TError,
+    { caseId: number; memberId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteRateCardMember>>,
+  TError,
+  { caseId: number; memberId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteRateCardMember"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteRateCardMember>>,
+    { caseId: number; memberId: number }
+  > = (props) => {
+    const { caseId, memberId } = props ?? {};
+
+    return deleteRateCardMember(caseId, memberId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteRateCardMemberMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteRateCardMember>>
+>;
+
+export type DeleteRateCardMemberMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Remove a team member from the rate card
+ */
+export const useDeleteRateCardMember = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteRateCardMember>>,
+    TError,
+    { caseId: number; memberId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteRateCardMember>>,
+  TError,
+  { caseId: number; memberId: number },
+  TContext
+> => {
+  return useMutation(getDeleteRateCardMemberMutationOptions(options));
+};
+
+/**
+ * @summary List time entries for a case
+ */
+export const getListTimeEntriesUrl = (caseId: number) => {
+  return `/api/cases/${caseId}/time-entries`;
+};
+
+export const listTimeEntries = async (
+  caseId: number,
+  options?: RequestInit,
+): Promise<TimeEntry[]> => {
+  return customFetch<TimeEntry[]>(getListTimeEntriesUrl(caseId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListTimeEntriesQueryKey = (caseId: number) => {
+  return [`/api/cases/${caseId}/time-entries`] as const;
+};
+
+export const getListTimeEntriesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listTimeEntries>>,
+  TError = ErrorType<unknown>,
+>(
+  caseId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listTimeEntries>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListTimeEntriesQueryKey(caseId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listTimeEntries>>> = ({
+    signal,
+  }) => listTimeEntries(caseId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!caseId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listTimeEntries>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListTimeEntriesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listTimeEntries>>
+>;
+export type ListTimeEntriesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List time entries for a case
+ */
+
+export function useListTimeEntries<
+  TData = Awaited<ReturnType<typeof listTimeEntries>>,
+  TError = ErrorType<unknown>,
+>(
+  caseId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listTimeEntries>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListTimeEntriesQueryOptions(caseId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Log a time entry
+ */
+export const getAddTimeEntryUrl = (caseId: number) => {
+  return `/api/cases/${caseId}/time-entries`;
+};
+
+export const addTimeEntry = async (
+  caseId: number,
+  createTimeEntryRequest: CreateTimeEntryRequest,
+  options?: RequestInit,
+): Promise<TimeEntry> => {
+  return customFetch<TimeEntry>(getAddTimeEntryUrl(caseId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createTimeEntryRequest),
+  });
+};
+
+export const getAddTimeEntryMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addTimeEntry>>,
+    TError,
+    { caseId: number; data: BodyType<CreateTimeEntryRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addTimeEntry>>,
+  TError,
+  { caseId: number; data: BodyType<CreateTimeEntryRequest> },
+  TContext
+> => {
+  const mutationKey = ["addTimeEntry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addTimeEntry>>,
+    { caseId: number; data: BodyType<CreateTimeEntryRequest> }
+  > = (props) => {
+    const { caseId, data } = props ?? {};
+
+    return addTimeEntry(caseId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddTimeEntryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addTimeEntry>>
+>;
+export type AddTimeEntryMutationBody = BodyType<CreateTimeEntryRequest>;
+export type AddTimeEntryMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Log a time entry
+ */
+export const useAddTimeEntry = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addTimeEntry>>,
+    TError,
+    { caseId: number; data: BodyType<CreateTimeEntryRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addTimeEntry>>,
+  TError,
+  { caseId: number; data: BodyType<CreateTimeEntryRequest> },
+  TContext
+> => {
+  return useMutation(getAddTimeEntryMutationOptions(options));
+};
+
+/**
+ * @summary Update a time entry
+ */
+export const getUpdateTimeEntryUrl = (caseId: number, entryId: number) => {
+  return `/api/cases/${caseId}/time-entries/${entryId}`;
+};
+
+export const updateTimeEntry = async (
+  caseId: number,
+  entryId: number,
+  createTimeEntryRequest: CreateTimeEntryRequest,
+  options?: RequestInit,
+): Promise<TimeEntry> => {
+  return customFetch<TimeEntry>(getUpdateTimeEntryUrl(caseId, entryId), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createTimeEntryRequest),
+  });
+};
+
+export const getUpdateTimeEntryMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateTimeEntry>>,
+    TError,
+    { caseId: number; entryId: number; data: BodyType<CreateTimeEntryRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateTimeEntry>>,
+  TError,
+  { caseId: number; entryId: number; data: BodyType<CreateTimeEntryRequest> },
+  TContext
+> => {
+  const mutationKey = ["updateTimeEntry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateTimeEntry>>,
+    { caseId: number; entryId: number; data: BodyType<CreateTimeEntryRequest> }
+  > = (props) => {
+    const { caseId, entryId, data } = props ?? {};
+
+    return updateTimeEntry(caseId, entryId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateTimeEntryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateTimeEntry>>
+>;
+export type UpdateTimeEntryMutationBody = BodyType<CreateTimeEntryRequest>;
+export type UpdateTimeEntryMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update a time entry
+ */
+export const useUpdateTimeEntry = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateTimeEntry>>,
+    TError,
+    { caseId: number; entryId: number; data: BodyType<CreateTimeEntryRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateTimeEntry>>,
+  TError,
+  { caseId: number; entryId: number; data: BodyType<CreateTimeEntryRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateTimeEntryMutationOptions(options));
+};
+
+/**
+ * @summary Delete a time entry
+ */
+export const getDeleteTimeEntryUrl = (caseId: number, entryId: number) => {
+  return `/api/cases/${caseId}/time-entries/${entryId}`;
+};
+
+export const deleteTimeEntry = async (
+  caseId: number,
+  entryId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteTimeEntryUrl(caseId, entryId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteTimeEntryMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteTimeEntry>>,
+    TError,
+    { caseId: number; entryId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteTimeEntry>>,
+  TError,
+  { caseId: number; entryId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteTimeEntry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteTimeEntry>>,
+    { caseId: number; entryId: number }
+  > = (props) => {
+    const { caseId, entryId } = props ?? {};
+
+    return deleteTimeEntry(caseId, entryId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteTimeEntryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteTimeEntry>>
+>;
+
+export type DeleteTimeEntryMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Delete a time entry
+ */
+export const useDeleteTimeEntry = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteTimeEntry>>,
+    TError,
+    { caseId: number; entryId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteTimeEntry>>,
+  TError,
+  { caseId: number; entryId: number },
+  TContext
+> => {
+  return useMutation(getDeleteTimeEntryMutationOptions(options));
+};
+
+/**
+ * @summary List disbursements for a case
+ */
+export const getListDisbursementsUrl = (caseId: number) => {
+  return `/api/cases/${caseId}/disbursements`;
+};
+
+export const listDisbursements = async (
+  caseId: number,
+  options?: RequestInit,
+): Promise<Disbursement[]> => {
+  return customFetch<Disbursement[]>(getListDisbursementsUrl(caseId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListDisbursementsQueryKey = (caseId: number) => {
+  return [`/api/cases/${caseId}/disbursements`] as const;
+};
+
+export const getListDisbursementsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listDisbursements>>,
+  TError = ErrorType<unknown>,
+>(
+  caseId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listDisbursements>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListDisbursementsQueryKey(caseId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listDisbursements>>
+  > = ({ signal }) => listDisbursements(caseId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!caseId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listDisbursements>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListDisbursementsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listDisbursements>>
+>;
+export type ListDisbursementsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List disbursements for a case
+ */
+
+export function useListDisbursements<
+  TData = Awaited<ReturnType<typeof listDisbursements>>,
+  TError = ErrorType<unknown>,
+>(
+  caseId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listDisbursements>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListDisbursementsQueryOptions(caseId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Log a disbursement
+ */
+export const getAddDisbursementUrl = (caseId: number) => {
+  return `/api/cases/${caseId}/disbursements`;
+};
+
+export const addDisbursement = async (
+  caseId: number,
+  createDisbursementRequest: CreateDisbursementRequest,
+  options?: RequestInit,
+): Promise<Disbursement> => {
+  return customFetch<Disbursement>(getAddDisbursementUrl(caseId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createDisbursementRequest),
+  });
+};
+
+export const getAddDisbursementMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addDisbursement>>,
+    TError,
+    { caseId: number; data: BodyType<CreateDisbursementRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addDisbursement>>,
+  TError,
+  { caseId: number; data: BodyType<CreateDisbursementRequest> },
+  TContext
+> => {
+  const mutationKey = ["addDisbursement"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addDisbursement>>,
+    { caseId: number; data: BodyType<CreateDisbursementRequest> }
+  > = (props) => {
+    const { caseId, data } = props ?? {};
+
+    return addDisbursement(caseId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddDisbursementMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addDisbursement>>
+>;
+export type AddDisbursementMutationBody = BodyType<CreateDisbursementRequest>;
+export type AddDisbursementMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Log a disbursement
+ */
+export const useAddDisbursement = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addDisbursement>>,
+    TError,
+    { caseId: number; data: BodyType<CreateDisbursementRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addDisbursement>>,
+  TError,
+  { caseId: number; data: BodyType<CreateDisbursementRequest> },
+  TContext
+> => {
+  return useMutation(getAddDisbursementMutationOptions(options));
+};
+
+/**
+ * @summary Update a disbursement
+ */
+export const getUpdateDisbursementUrl = (caseId: number, disbId: number) => {
+  return `/api/cases/${caseId}/disbursements/${disbId}`;
+};
+
+export const updateDisbursement = async (
+  caseId: number,
+  disbId: number,
+  createDisbursementRequest: CreateDisbursementRequest,
+  options?: RequestInit,
+): Promise<Disbursement> => {
+  return customFetch<Disbursement>(getUpdateDisbursementUrl(caseId, disbId), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createDisbursementRequest),
+  });
+};
+
+export const getUpdateDisbursementMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateDisbursement>>,
+    TError,
+    {
+      caseId: number;
+      disbId: number;
+      data: BodyType<CreateDisbursementRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateDisbursement>>,
+  TError,
+  { caseId: number; disbId: number; data: BodyType<CreateDisbursementRequest> },
+  TContext
+> => {
+  const mutationKey = ["updateDisbursement"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateDisbursement>>,
+    {
+      caseId: number;
+      disbId: number;
+      data: BodyType<CreateDisbursementRequest>;
+    }
+  > = (props) => {
+    const { caseId, disbId, data } = props ?? {};
+
+    return updateDisbursement(caseId, disbId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateDisbursementMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateDisbursement>>
+>;
+export type UpdateDisbursementMutationBody =
+  BodyType<CreateDisbursementRequest>;
+export type UpdateDisbursementMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update a disbursement
+ */
+export const useUpdateDisbursement = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateDisbursement>>,
+    TError,
+    {
+      caseId: number;
+      disbId: number;
+      data: BodyType<CreateDisbursementRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateDisbursement>>,
+  TError,
+  { caseId: number; disbId: number; data: BodyType<CreateDisbursementRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateDisbursementMutationOptions(options));
+};
+
+/**
+ * @summary Delete a disbursement
+ */
+export const getDeleteDisbursementUrl = (caseId: number, disbId: number) => {
+  return `/api/cases/${caseId}/disbursements/${disbId}`;
+};
+
+export const deleteDisbursement = async (
+  caseId: number,
+  disbId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteDisbursementUrl(caseId, disbId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteDisbursementMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDisbursement>>,
+    TError,
+    { caseId: number; disbId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteDisbursement>>,
+  TError,
+  { caseId: number; disbId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteDisbursement"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteDisbursement>>,
+    { caseId: number; disbId: number }
+  > = (props) => {
+    const { caseId, disbId } = props ?? {};
+
+    return deleteDisbursement(caseId, disbId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteDisbursementMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteDisbursement>>
+>;
+
+export type DeleteDisbursementMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Delete a disbursement
+ */
+export const useDeleteDisbursement = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDisbursement>>,
+    TError,
+    { caseId: number; disbId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteDisbursement>>,
+  TError,
+  { caseId: number; disbId: number },
+  TContext
+> => {
+  return useMutation(getDeleteDisbursementMutationOptions(options));
+};
+
+/**
+ * @summary Get costs settings for a case (ICC advance, budget)
+ */
+export const getGetCostsSettingsUrl = (caseId: number) => {
+  return `/api/cases/${caseId}/costs-settings`;
+};
+
+export const getCostsSettings = async (
+  caseId: number,
+  options?: RequestInit,
+): Promise<CostsSettings> => {
+  return customFetch<CostsSettings>(getGetCostsSettingsUrl(caseId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCostsSettingsQueryKey = (caseId: number) => {
+  return [`/api/cases/${caseId}/costs-settings`] as const;
+};
+
+export const getGetCostsSettingsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCostsSettings>>,
+  TError = ErrorType<unknown>,
+>(
+  caseId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCostsSettings>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetCostsSettingsQueryKey(caseId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getCostsSettings>>
+  > = ({ signal }) => getCostsSettings(caseId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!caseId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCostsSettings>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCostsSettingsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCostsSettings>>
+>;
+export type GetCostsSettingsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get costs settings for a case (ICC advance, budget)
+ */
+
+export function useGetCostsSettings<
+  TData = Awaited<ReturnType<typeof getCostsSettings>>,
+  TError = ErrorType<unknown>,
+>(
+  caseId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCostsSettings>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCostsSettingsQueryOptions(caseId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create or update costs settings for a case
+ */
+export const getUpsertCostsSettingsUrl = (caseId: number) => {
+  return `/api/cases/${caseId}/costs-settings`;
+};
+
+export const upsertCostsSettings = async (
+  caseId: number,
+  updateCostsSettingsRequest: UpdateCostsSettingsRequest,
+  options?: RequestInit,
+): Promise<CostsSettings> => {
+  return customFetch<CostsSettings>(getUpsertCostsSettingsUrl(caseId), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateCostsSettingsRequest),
+  });
+};
+
+export const getUpsertCostsSettingsMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof upsertCostsSettings>>,
+    TError,
+    { caseId: number; data: BodyType<UpdateCostsSettingsRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof upsertCostsSettings>>,
+  TError,
+  { caseId: number; data: BodyType<UpdateCostsSettingsRequest> },
+  TContext
+> => {
+  const mutationKey = ["upsertCostsSettings"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof upsertCostsSettings>>,
+    { caseId: number; data: BodyType<UpdateCostsSettingsRequest> }
+  > = (props) => {
+    const { caseId, data } = props ?? {};
+
+    return upsertCostsSettings(caseId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpsertCostsSettingsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof upsertCostsSettings>>
+>;
+export type UpsertCostsSettingsMutationBody =
+  BodyType<UpdateCostsSettingsRequest>;
+export type UpsertCostsSettingsMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create or update costs settings for a case
+ */
+export const useUpsertCostsSettings = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof upsertCostsSettings>>,
+    TError,
+    { caseId: number; data: BodyType<UpdateCostsSettingsRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof upsertCostsSettings>>,
+  TError,
+  { caseId: number; data: BodyType<UpdateCostsSettingsRequest> },
+  TContext
+> => {
+  return useMutation(getUpsertCostsSettingsMutationOptions(options));
 };
 
 /**

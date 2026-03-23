@@ -7,6 +7,7 @@ import {
 import ProceduralCalendar from "@/components/ProceduralCalendar";
 import ProceduralOrders from "@/components/ProceduralOrders";
 import HearingLogistics from "@/components/HearingLogistics";
+import CostsTracker from "@/components/CostsTracker";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { cn, formatDate } from "@/lib/utils";
@@ -226,7 +227,7 @@ export default function CaseDashboard({ params }: { params: { id: string } }) {
   const caseId = parseInt(params.id, 10);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"details" | "tribunal" | "reps" | "calendar" | "orders" | "hearing">("details");
+  const [activeTab, setActiveTab] = useState<"details" | "tribunal" | "reps" | "calendar" | "orders" | "hearing" | "costs">("details");
   
   // Modals state
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -294,6 +295,7 @@ export default function CaseDashboard({ params }: { params: { id: string } }) {
     { id: "orders", label: "Procedural Orders" },
     { id: "calendar", label: "Procedural Calendar" },
     { id: "hearing", label: "Hearing Logistics" },
+    { id: "costs", label: "Costs Tracker" },
   ] as const;
 
   return (
@@ -533,6 +535,13 @@ export default function CaseDashboard({ params }: { params: { id: string } }) {
           {activeTab === "hearing" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <HearingLogistics caseId={caseId} />
+            </motion.div>
+          )}
+
+          {/* Costs Tracker Tab */}
+          {activeTab === "costs" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <CostsTracker caseId={caseId} caseRef={caseData.caseReference} />
             </motion.div>
           )}
 
