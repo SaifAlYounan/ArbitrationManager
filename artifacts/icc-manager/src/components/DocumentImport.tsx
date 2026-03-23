@@ -19,6 +19,84 @@ type Step = "upload" | "analyzing" | "review" | "applying" | "done";
 
 const uid = () => Math.random().toString(36).slice(2);
 
+const SAMPLE_DOCUMENT_NAME = "ICC-Sample-Procedural-Order-2.txt";
+const SAMPLE_DOCUMENT_CONTENT = `PROCEDURAL ORDER NO. 2
+
+In the matter of ICC Arbitration
+
+SUBJECT: Amended Procedural Timetable, Document Production and Expert Evidence
+
+Issued: 3 February 2026
+
+Following the Case Management Conference held on 20 January 2026 and having
+considered the submissions of both parties, THE TRIBUNAL hereby issues the
+following directions:
+
+1. DOCUMENT PRODUCTION
+
+1.1 Both parties shall complete their document production in accordance with
+    the Redfern Schedule by 28 February 2026. The Tribunal will rule on any
+    contested requests by 15 March 2026.
+
+1.2 The Claimant shall submit the following additional exhibits:
+    - Exhibit C-7: Internal board memorandum regarding the disputed transaction
+      (dated 14 November 2023)
+    - Exhibit C-8: Independent audit report commissioned by the Claimant
+      (PricewaterhouseCoopers, January 2024)
+    - Exhibit C-9: Correspondence with the Respondent regarding cure period
+      (October–December 2023)
+
+1.3 The Respondent shall produce:
+    - Exhibit R-5: Regulatory approval file, including all communications with
+      the competent authority (2022–2023)
+    - Exhibit R-6: Financial model and projections relied upon at the time of
+      entering into the agreement
+
+2. EXPERT EVIDENCE
+
+2.1 Each party may appoint one quantum expert. Expert reports shall be
+    simultaneously exchanged by 30 June 2026.
+
+2.2 The Claimant's quantum expert report shall be filed by 30 June 2026.
+
+2.3 The Respondent's quantum expert report shall be filed by 30 June 2026.
+
+2.4 A joint expert conferral shall take place by 15 August 2026. Any agreed
+    statement of facts or areas of disagreement shall be filed by 31 August 2026.
+
+3. AMENDED TIMETABLE
+
+3.1  Document production completed        — 28 February 2026  (All parties)
+3.2  Tribunal ruling on contested requests — 15 March 2026    (Tribunal)
+3.3  Claimant Reply Memorial              — 15 April 2026     (Claimant)
+3.4  Respondent Rejoinder                 — 30 May 2026       (Respondent)
+3.5  Simultaneous expert reports          — 30 June 2026      (All parties)
+3.6  Joint expert conferral               — 15 August 2026    (All parties)
+3.7  Agreed expert statement              — 31 August 2026    (All parties)
+3.8  Pre-Hearing Submissions              — 30 September 2026 (All parties)
+3.9  Hearing on Merits                    — 26–30 October 2026 (All parties)
+
+4. HEARING ARRANGEMENTS
+
+4.1 The Merits Hearing shall take place from 26 to 30 October 2026 (5 days).
+
+4.2 Each party is allocated 20 hours of total hearing time for examination of
+    witnesses and oral submissions.
+
+4.3 The parties shall agree a hearing bundle index and e-bundle by
+    15 October 2026.
+
+5. COSTS
+
+5.1 Costs of this application are reserved to the final award.
+
+By order of the Tribunal.
+`;
+
+function makeSampleFile(): File {
+  return new File([SAMPLE_DOCUMENT_CONTENT], SAMPLE_DOCUMENT_NAME, { type: "text/plain" });
+}
+
 function Section({ title, icon, color, count, children }: { title: string; icon: React.ReactNode; color: string; count: number; children: React.ReactNode }) {
   const [open, setOpen] = useState(true);
   if (count === 0) return null;
@@ -216,6 +294,30 @@ export default function DocumentImport({ caseId, onClose }: { caseId: number; on
                 <button className="mt-3 text-sm text-[#0F2547] font-medium underline underline-offset-2">Browse files</button>
                 <input ref={fileInputRef} type="file" multiple accept=".pdf,.txt,.md,.docx" className="hidden" onChange={e => e.target.files && addFiles(e.target.files)} />
               </div>
+
+              {/* Sample document prompt */}
+              {step === "upload" && files.length === 0 && (
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-gray-200" />
+                  <span className="text-xs text-gray-400 flex-shrink-0">or try an example</span>
+                  <div className="flex-1 h-px bg-gray-200" />
+                </div>
+              )}
+              {step === "upload" && files.length === 0 && (
+                <button
+                  onClick={() => addFiles([makeSampleFile()])}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-300 transition-colors text-left group"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-[#0F2547]/10 flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-4 h-4 text-[#0F2547]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-[#0F2547]">Load sample document</p>
+                    <p className="text-xs text-blue-600 mt-0.5">Procedural Order No. 2 — timetable, exhibits &amp; expert directions</p>
+                  </div>
+                  <Sparkles className="w-4 h-4 text-blue-400 flex-shrink-0 group-hover:text-[#0F2547] transition-colors" />
+                </button>
+              )}
 
               {files.length > 0 && (
                 <div className="space-y-2">
