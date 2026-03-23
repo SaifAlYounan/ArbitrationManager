@@ -114,11 +114,39 @@ export default function Landing() {
               <span className="text-blue-300">every exhibit,</span><br />
               every cost. Managed.
             </h1>
-            <p className="text-xl text-blue-100 leading-relaxed max-w-2xl mb-10">
+            <p className="text-xl text-blue-100 leading-relaxed max-w-2xl mb-8">
               A purpose-built case management platform for counsel running ICC arbitration proceedings.
               From constitution of the tribunal to the costs statement, everything your team needs
               — in one professionally structured workspace.
             </p>
+
+            {/* Smart Import callout */}
+            <div className="bg-white/8 border border-white/15 rounded-2xl p-5 mb-10 max-w-2xl">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 rounded-lg bg-blue-400/20 flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-3.5 h-3.5 text-blue-300" />
+                </div>
+                <span className="text-sm font-semibold text-white">AI Smart Import — now live</span>
+                <span className="ml-auto text-xs bg-blue-400/20 text-blue-200 border border-blue-400/20 px-2.5 py-0.5 rounded-full font-medium">New</span>
+              </div>
+              <p className="text-blue-100 text-sm leading-relaxed mb-4">
+                Drop any arbitration document — a Procedural Order, a Request for Arbitration, a timetable letter — and Claude reads it with legal expertise, automatically extracting every exhibit reference, filing deadline, and procedural direction. Review the proposed additions, check or uncheck individual items, and apply them to your case record in one click. No copy-pasting. No missed obligations.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { icon: FolderOpen, label: "Exhibit references (C-001, R-001…)" },
+                  { icon: CalendarDays, label: "Filing & hearing deadlines" },
+                  { icon: FileText, label: "Procedural Orders & directions" },
+                  { icon: ScanText, label: "Party obligations & expert directions" },
+                ].map((chip) => (
+                  <div key={chip.label} className="inline-flex items-center gap-1.5 bg-white/8 border border-white/12 rounded-lg px-3 py-1.5 text-xs text-blue-200">
+                    <chip.icon className="w-3 h-3 text-blue-300 flex-shrink-0" />
+                    {chip.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div className="flex items-center gap-4 flex-wrap">
               <Link href="/app">
                 <motion.button
