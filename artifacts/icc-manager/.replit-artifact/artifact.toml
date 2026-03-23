@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "ICC Procedural Manager"
+version = "1.0.0"
+id = "artifacts/icc-manager"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23517
+
+[services.development]
+run = "pnpm --filter @workspace/icc-manager run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/icc-manager", "run", "build" ]
+publicDir = "artifacts/icc-manager/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23517"
+BASE_PATH = "/"

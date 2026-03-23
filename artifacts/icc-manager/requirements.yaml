@@ -1,0 +1,5 @@
+packages:
+  "framer-motion": "Smooth entry animations and page transitions"
+  "date-fns": "Formatting dates professionally"
+  "clsx": "Class name merging"
+  "tailwind-merge": "Tailwind utility merging"

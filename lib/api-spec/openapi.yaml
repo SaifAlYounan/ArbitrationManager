@@ -1,15 +1,20 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: ICC Procedural Manager API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: cases
+    description: ICC arbitration case management
+  - name: tribunal
+    description: Tribunal member management
+  - name: representatives
+    description: Party representative management
 paths:
   /healthz:
     get:
@@ -24,6 +29,319 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /cases:
+    get:
+      operationId: listCases
+      tags: [cases]
+      summary: List all cases
+      responses:
+        "200":
+          description: List of cases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Case"
+    post:
+      operationId: createCase
+      tags: [cases]
+      summary: Create a new case
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCaseRequest"
+      responses:
+        "201":
+          description: Case created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Case"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{id}:
+    get:
+      operationId: getCase
+      tags: [cases]
+      summary: Get a case by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Case details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateCase
+      tags: [cases]
+      summary: Update a case
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCaseRequest"
+      responses:
+        "200":
+          description: Updated case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Case"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/tribunal:
+    get:
+      operationId: listTribunalMembers
+      tags: [tribunal]
+      summary: List tribunal members for a case
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of tribunal members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TribunalMember"
+    post:
+      operationId: addTribunalMember
+      tags: [tribunal]
+      summary: Add a tribunal member to a case
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTribunalMemberRequest"
+      responses:
+        "201":
+          description: Tribunal member added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TribunalMember"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/tribunal/{memberId}:
+    put:
+      operationId: updateTribunalMember
+      tags: [tribunal]
+      summary: Update a tribunal member
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTribunalMemberRequest"
+      responses:
+        "200":
+          description: Updated member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TribunalMember"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteTribunalMember
+      tags: [tribunal]
+      summary: Remove a tribunal member
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/representatives:
+    get:
+      operationId: listRepresentatives
+      tags: [representatives]
+      summary: List party representatives for a case
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of representatives
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Representative"
+    post:
+      operationId: addRepresentative
+      tags: [representatives]
+      summary: Add a party representative to a case
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRepresentativeRequest"
+      responses:
+        "201":
+          description: Representative added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Representative"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/representatives/{repId}:
+    put:
+      operationId: updateRepresentative
+      tags: [representatives]
+      summary: Update a representative
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: repId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRepresentativeRequest"
+      responses:
+        "200":
+          description: Updated representative
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Representative"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteRepresentative
+      tags: [representatives]
+      summary: Remove a representative
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: repId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +352,245 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    ApplicableRules:
+      type: string
+      enum:
+        - ICC 2021
+        - ICC 2017
+        - ICC 2012
+
+    CaseStatus:
+      type: string
+      enum:
+        - Active
+        - Pending
+        - Closed
+        - Suspended
+
+    TribunalRole:
+      type: string
+      enum:
+        - President
+        - Co-arbitrator
+        - Sole Arbitrator
+        - Secretary
+
+    RepresentativeRole:
+      type: string
+      enum:
+        - Lead Counsel
+        - Co-counsel
+        - Junior
+
+    RepresentativeParty:
+      type: string
+      enum:
+        - Claimant
+        - Respondent
+
+    Case:
+      type: object
+      properties:
+        id:
+          type: integer
+        caseReference:
+          type: string
+        caseName:
+          type: string
+        claimants:
+          type: string
+        respondents:
+          type: string
+        seatOfArbitration:
+          type: string
+        languageOfArbitration:
+          type: string
+        applicableRules:
+          $ref: "#/components/schemas/ApplicableRules"
+        dateOfRequest:
+          type: string
+          format: date
+        currency:
+          type: string
+        status:
+          $ref: "#/components/schemas/CaseStatus"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - caseReference
+        - caseName
+        - claimants
+        - respondents
+        - seatOfArbitration
+        - languageOfArbitration
+        - applicableRules
+        - dateOfRequest
+        - currency
+        - status
+        - createdAt
+        - updatedAt
+
+    CaseDetail:
+      allOf:
+        - $ref: "#/components/schemas/Case"
+        - type: object
+          properties:
+            tribunalMembers:
+              type: array
+              items:
+                $ref: "#/components/schemas/TribunalMember"
+            representatives:
+              type: array
+              items:
+                $ref: "#/components/schemas/Representative"
+          required:
+            - tribunalMembers
+            - representatives
+
+    CreateCaseRequest:
+      type: object
+      properties:
+        caseReference:
+          type: string
+        caseName:
+          type: string
+        claimants:
+          type: string
+        respondents:
+          type: string
+        seatOfArbitration:
+          type: string
+        languageOfArbitration:
+          type: string
+        applicableRules:
+          $ref: "#/components/schemas/ApplicableRules"
+        dateOfRequest:
+          type: string
+          format: date
+        currency:
+          type: string
+        status:
+          $ref: "#/components/schemas/CaseStatus"
+      required:
+        - caseReference
+        - caseName
+        - claimants
+        - respondents
+        - seatOfArbitration
+        - languageOfArbitration
+        - applicableRules
+        - dateOfRequest
+        - currency
+
+    TribunalMember:
+      type: object
+      properties:
+        id:
+          type: integer
+        caseId:
+          type: integer
+        name:
+          type: string
+        role:
+          $ref: "#/components/schemas/TribunalRole"
+        email:
+          type: string
+        timeZone:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - caseId
+        - name
+        - role
+        - email
+        - timeZone
+        - createdAt
+
+    CreateTribunalMemberRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        role:
+          $ref: "#/components/schemas/TribunalRole"
+        email:
+          type: string
+        timeZone:
+          type: string
+      required:
+        - name
+        - role
+        - email
+        - timeZone
+
+    Representative:
+      type: object
+      properties:
+        id:
+          type: integer
+        caseId:
+          type: integer
+        name:
+          type: string
+        firm:
+          type: string
+        role:
+          $ref: "#/components/schemas/RepresentativeRole"
+        party:
+          $ref: "#/components/schemas/RepresentativeParty"
+        email:
+          type: string
+        timeZone:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - caseId
+        - name
+        - firm
+        - role
+        - party
+        - email
+        - timeZone
+        - createdAt
+
+    CreateRepresentativeRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        firm:
+          type: string
+        role:
+          $ref: "#/components/schemas/RepresentativeRole"
+        party:
+          $ref: "#/components/schemas/RepresentativeParty"
+        email:
+          type: string
+        timeZone:
+          type: string
+      required:
+        - name
+        - firm
+        - role
+        - party
+        - email
+        - timeZone
