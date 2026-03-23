@@ -14,6 +14,7 @@ import {
   Search,
   X,
   ChevronRight,
+  Sparkles,
 } from "lucide-react";
 import {
   useGetCase,
@@ -27,6 +28,7 @@ import CostsTracker from "@/components/CostsTracker";
 import CaseOverview from "@/components/CaseOverview";
 import Exhibits from "@/components/Exhibits";
 import CaseSettings from "@/components/CaseSettings";
+import DocumentImport from "@/components/DocumentImport";
 import { useToast } from "@/hooks/use-toast";
 
 type Section = "overview" | "calendar" | "exhibits" | "orders" | "hearing" | "costs" | "settings";
@@ -52,6 +54,7 @@ export default function CaseDashboard({ params }: { params: { id: string } }) {
   const caseId = parseInt(params.id, 10);
   const [activeSection, setActiveSection] = useState<Section>("overview");
   const [searchOpen, setSearchOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const qc = useQueryClient();
 
   const { data: caseData, isLoading } = useGetCase(caseId);
@@ -131,8 +134,15 @@ export default function CaseDashboard({ params }: { params: { id: string } }) {
           ))}
         </nav>
 
-        {/* Footer */}
-        <div className="p-3 border-t border-white/10 flex-shrink-0">
+        {/* Smart Import Button + Footer */}
+        <div className="p-3 border-t border-white/10 flex-shrink-0 space-y-2">
+          <button
+            onClick={() => setImportOpen(true)}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-xs font-medium transition-colors"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-blue-300" />
+            Smart Import
+          </button>
           <p className="text-xs text-white/30 text-center">Procedural Manager</p>
         </div>
       </aside>
@@ -207,6 +217,11 @@ export default function CaseDashboard({ params }: { params: { id: string } }) {
           />
         )}
       </AnimatePresence>
+
+      {/* ── Smart Import Modal ── */}
+      {importOpen && (
+        <DocumentImport caseId={caseId} onClose={() => setImportOpen(false)} />
+      )}
     </div>
   );
 }

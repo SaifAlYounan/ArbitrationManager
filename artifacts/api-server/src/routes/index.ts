@@ -9,6 +9,7 @@ import exhibitsRouter from "./exhibits";
 import activityRouter from "./activity";
 import searchRouter from "./search";
 import preferencesRouter from "./preferences";
+import analyzeRouter from "./analyze";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(exhibitsRouter);
 router.use(activityRouter);
 router.use(searchRouter);
 router.use(preferencesRouter);
+router.use(analyzeRouter);
 
 export default router;
