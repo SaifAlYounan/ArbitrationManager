@@ -25,6 +25,7 @@ import type {
   CreateChecklistItemRequest,
   CreateDeadlineRequest,
   CreateDisbursementRequest,
+  CreateExhibitRequest,
   CreateHearingRequest,
   CreateParticipantRequest,
   CreateProceduralOrderRequest,
@@ -36,6 +37,7 @@ import type {
   Deadline,
   Disbursement,
   ErrorResponse,
+  Exhibit,
   HealthStatus,
   Hearing,
   HearingChecklistItem,
@@ -1202,6 +1204,353 @@ export const useDeleteRepresentative = <
   TContext
 > => {
   return useMutation(getDeleteRepresentativeMutationOptions(options));
+};
+
+/**
+ * @summary List exhibits for a case
+ */
+export const getListExhibitsUrl = (caseId: number) => {
+  return `/api/cases/${caseId}/exhibits`;
+};
+
+export const listExhibits = async (
+  caseId: number,
+  options?: RequestInit,
+): Promise<Exhibit[]> => {
+  return customFetch<Exhibit[]>(getListExhibitsUrl(caseId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListExhibitsQueryKey = (caseId: number) => {
+  return [`/api/cases/${caseId}/exhibits`] as const;
+};
+
+export const getListExhibitsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listExhibits>>,
+  TError = ErrorType<unknown>,
+>(
+  caseId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listExhibits>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListExhibitsQueryKey(caseId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listExhibits>>> = ({
+    signal,
+  }) => listExhibits(caseId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!caseId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listExhibits>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListExhibitsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listExhibits>>
+>;
+export type ListExhibitsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List exhibits for a case
+ */
+
+export function useListExhibits<
+  TData = Awaited<ReturnType<typeof listExhibits>>,
+  TError = ErrorType<unknown>,
+>(
+  caseId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listExhibits>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListExhibitsQueryOptions(caseId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Register an exhibit
+ */
+export const getAddExhibitUrl = (caseId: number) => {
+  return `/api/cases/${caseId}/exhibits`;
+};
+
+export const addExhibit = async (
+  caseId: number,
+  createExhibitRequest: CreateExhibitRequest,
+  options?: RequestInit,
+): Promise<Exhibit> => {
+  return customFetch<Exhibit>(getAddExhibitUrl(caseId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createExhibitRequest),
+  });
+};
+
+export const getAddExhibitMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addExhibit>>,
+    TError,
+    { caseId: number; data: BodyType<CreateExhibitRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addExhibit>>,
+  TError,
+  { caseId: number; data: BodyType<CreateExhibitRequest> },
+  TContext
+> => {
+  const mutationKey = ["addExhibit"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addExhibit>>,
+    { caseId: number; data: BodyType<CreateExhibitRequest> }
+  > = (props) => {
+    const { caseId, data } = props ?? {};
+
+    return addExhibit(caseId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddExhibitMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addExhibit>>
+>;
+export type AddExhibitMutationBody = BodyType<CreateExhibitRequest>;
+export type AddExhibitMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Register an exhibit
+ */
+export const useAddExhibit = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addExhibit>>,
+    TError,
+    { caseId: number; data: BodyType<CreateExhibitRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addExhibit>>,
+  TError,
+  { caseId: number; data: BodyType<CreateExhibitRequest> },
+  TContext
+> => {
+  return useMutation(getAddExhibitMutationOptions(options));
+};
+
+/**
+ * @summary Update an exhibit
+ */
+export const getUpdateExhibitUrl = (caseId: number, exhibitId: number) => {
+  return `/api/cases/${caseId}/exhibits/${exhibitId}`;
+};
+
+export const updateExhibit = async (
+  caseId: number,
+  exhibitId: number,
+  createExhibitRequest: CreateExhibitRequest,
+  options?: RequestInit,
+): Promise<Exhibit> => {
+  return customFetch<Exhibit>(getUpdateExhibitUrl(caseId, exhibitId), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createExhibitRequest),
+  });
+};
+
+export const getUpdateExhibitMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateExhibit>>,
+    TError,
+    { caseId: number; exhibitId: number; data: BodyType<CreateExhibitRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateExhibit>>,
+  TError,
+  { caseId: number; exhibitId: number; data: BodyType<CreateExhibitRequest> },
+  TContext
+> => {
+  const mutationKey = ["updateExhibit"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateExhibit>>,
+    { caseId: number; exhibitId: number; data: BodyType<CreateExhibitRequest> }
+  > = (props) => {
+    const { caseId, exhibitId, data } = props ?? {};
+
+    return updateExhibit(caseId, exhibitId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateExhibitMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateExhibit>>
+>;
+export type UpdateExhibitMutationBody = BodyType<CreateExhibitRequest>;
+export type UpdateExhibitMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update an exhibit
+ */
+export const useUpdateExhibit = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateExhibit>>,
+    TError,
+    { caseId: number; exhibitId: number; data: BodyType<CreateExhibitRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateExhibit>>,
+  TError,
+  { caseId: number; exhibitId: number; data: BodyType<CreateExhibitRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateExhibitMutationOptions(options));
+};
+
+/**
+ * @summary Delete an exhibit
+ */
+export const getDeleteExhibitUrl = (caseId: number, exhibitId: number) => {
+  return `/api/cases/${caseId}/exhibits/${exhibitId}`;
+};
+
+export const deleteExhibit = async (
+  caseId: number,
+  exhibitId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteExhibitUrl(caseId, exhibitId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteExhibitMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteExhibit>>,
+    TError,
+    { caseId: number; exhibitId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteExhibit>>,
+  TError,
+  { caseId: number; exhibitId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteExhibit"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteExhibit>>,
+    { caseId: number; exhibitId: number }
+  > = (props) => {
+    const { caseId, exhibitId } = props ?? {};
+
+    return deleteExhibit(caseId, exhibitId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteExhibitMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteExhibit>>
+>;
+
+export type DeleteExhibitMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Delete an exhibit
+ */
+export const useDeleteExhibit = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteExhibit>>,
+    TError,
+    { caseId: number; exhibitId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteExhibit>>,
+  TError,
+  { caseId: number; exhibitId: number },
+  TContext
+> => {
+  return useMutation(getDeleteExhibitMutationOptions(options));
 };
 
 /**

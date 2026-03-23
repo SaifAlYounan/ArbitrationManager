@@ -1,613 +1,357 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "wouter";
-import { 
-  ArrowLeft, Edit3, Plus, Trash2, MapPin, Globe, 
-  Calendar, DollarSign, Book, Scale, Building2, UserCircle 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ArrowLeft,
+  LayoutDashboard,
+  CalendarDays,
+  FolderOpen,
+  FileText,
+  Mic2,
+  DollarSign,
+  Settings,
+  Search,
+  X,
+  ChevronRight,
 } from "lucide-react";
+import {
+  useGetCase,
+  getGetCaseQueryKey,
+} from "@workspace/api-client-react";
+
 import ProceduralCalendar from "@/components/ProceduralCalendar";
 import ProceduralOrders from "@/components/ProceduralOrders";
 import HearingLogistics from "@/components/HearingLogistics";
 import CostsTracker from "@/components/CostsTracker";
-import { useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { cn, formatDate } from "@/lib/utils";
+import CaseOverview from "@/components/CaseOverview";
+import Exhibits from "@/components/Exhibits";
+import CaseSettings from "@/components/CaseSettings";
 import { useToast } from "@/hooks/use-toast";
 
-import {
-  useGetCase,
-  useUpdateCase,
-  useAddTribunalMember,
-  useDeleteTribunalMember,
-  useAddRepresentative,
-  useDeleteRepresentative,
-  getGetCaseQueryKey,
-  ApplicableRules,
-  CaseStatus,
-  TribunalRole,
-  RepresentativeRole,
-  RepresentativeParty,
-} from "@workspace/api-client-react";
-import type { TribunalMember, Representative } from "@workspace/api-client-react";
-import { StatusBadge } from "@/components/StatusBadge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+type Section = "overview" | "calendar" | "exhibits" | "orders" | "hearing" | "costs" | "settings";
 
-// --- Subcomponents for Forms ---
-function EditCaseModal({ caseData, isOpen, onClose, onSave, isPending }: any) {
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-card border-border shadow-2xl p-0 gap-0">
-        <DialogHeader className="p-6 border-b border-border bg-muted/30">
-          <DialogTitle className="font-display text-xl text-foreground">Edit Case Details</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          const fd = new FormData(e.currentTarget);
-          onSave({
-            caseReference: fd.get("caseReference"),
-            caseName: fd.get("caseName"),
-            claimants: fd.get("claimants"),
-            respondents: fd.get("respondents"),
-            seatOfArbitration: fd.get("seatOfArbitration"),
-            languageOfArbitration: fd.get("languageOfArbitration"),
-            applicableRules: fd.get("applicableRules"),
-            dateOfRequest: fd.get("dateOfRequest"),
-            currency: fd.get("currency"),
-            status: fd.get("status"),
-          });
-        }} className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-semibold mb-1 block text-foreground">Status</label>
-              <select name="status" defaultValue={caseData.status} className="w-full rounded-md border border-border h-10 px-3 bg-background">
-                {Object.values(CaseStatus).map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-sm font-semibold mb-1 block text-foreground">Rules</label>
-              <select name="applicableRules" defaultValue={caseData.applicableRules} className="w-full rounded-md border border-border h-10 px-3 bg-background">
-                {Object.values(ApplicableRules).map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-sm font-semibold mb-1 block text-foreground">Case Reference</label>
-              <input name="caseReference" defaultValue={caseData.caseReference} required className="w-full rounded-md border border-border h-10 px-3 bg-background" />
-            </div>
-            <div>
-              <label className="text-sm font-semibold mb-1 block text-foreground">Case Name</label>
-              <input name="caseName" defaultValue={caseData.caseName} required className="w-full rounded-md border border-border h-10 px-3 bg-background" />
-            </div>
-            <div className="col-span-2">
-              <label className="text-sm font-semibold mb-1 block text-foreground">Claimants</label>
-              <textarea name="claimants" defaultValue={caseData.claimants} required rows={2} className="w-full rounded-md border border-border p-3 bg-background" />
-            </div>
-            <div className="col-span-2">
-              <label className="text-sm font-semibold mb-1 block text-foreground">Respondents</label>
-              <textarea name="respondents" defaultValue={caseData.respondents} required rows={2} className="w-full rounded-md border border-border p-3 bg-background" />
-            </div>
-            <div>
-              <label className="text-sm font-semibold mb-1 block text-foreground">Seat</label>
-              <input name="seatOfArbitration" defaultValue={caseData.seatOfArbitration} required className="w-full rounded-md border border-border h-10 px-3 bg-background" />
-            </div>
-            <div>
-              <label className="text-sm font-semibold mb-1 block text-foreground">Language</label>
-              <input name="languageOfArbitration" defaultValue={caseData.languageOfArbitration} required className="w-full rounded-md border border-border h-10 px-3 bg-background" />
-            </div>
-            <div>
-              <label className="text-sm font-semibold mb-1 block text-foreground">Date</label>
-              <input type="date" name="dateOfRequest" defaultValue={caseData.dateOfRequest} required className="w-full rounded-md border border-border h-10 px-3 bg-background" />
-            </div>
-            <div>
-              <label className="text-sm font-semibold mb-1 block text-foreground">Currency</label>
-              <input name="currency" defaultValue={caseData.currency} required className="w-full rounded-md border border-border h-10 px-3 bg-background" />
-            </div>
-          </div>
-          <div className="flex justify-end gap-3 pt-4 border-t border-border mt-6">
-            <button type="button" onClick={() => onClose(false)} className="px-4 py-2 font-medium text-muted-foreground hover:text-foreground">Cancel</button>
-            <button type="submit" disabled={isPending} className="bg-primary text-primary-foreground px-6 py-2 rounded-md font-medium hover:bg-primary/90 disabled:opacity-50 shadow-sm">
-              Save Changes
-            </button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
+const NAV_ITEMS: { id: Section; label: string; shortLabel: string; icon: React.ElementType }[] = [
+  { id: "overview", label: "Overview", shortLabel: "Overview", icon: LayoutDashboard },
+  { id: "calendar", label: "Calendar", shortLabel: "Calendar", icon: CalendarDays },
+  { id: "exhibits", label: "Exhibits", shortLabel: "Exhibits", icon: FolderOpen },
+  { id: "orders", label: "Procedural Orders", shortLabel: "Orders", icon: FileText },
+  { id: "hearing", label: "Hearing Logistics", shortLabel: "Hearing", icon: Mic2 },
+  { id: "costs", label: "Costs Tracker", shortLabel: "Costs", icon: DollarSign },
+  { id: "settings", label: "Settings", shortLabel: "Settings", icon: Settings },
+];
 
-function AddTribunalModal({ isOpen, onClose, onSave, isPending }: any) {
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-card border-border shadow-2xl p-0 gap-0">
-        <DialogHeader className="p-6 border-b border-border bg-muted/30">
-          <DialogTitle className="font-display text-xl text-foreground">Add Tribunal Member</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          const fd = new FormData(e.currentTarget);
-          onSave({
-            name: fd.get("name"),
-            role: fd.get("role"),
-            email: fd.get("email"),
-            timeZone: fd.get("timeZone"),
-          });
-        }} className="p-6 space-y-4">
-          <div>
-            <label className="text-sm font-semibold mb-1 block text-foreground">Full Name</label>
-            <input name="name" required className="w-full rounded-md border border-border h-10 px-3 bg-background" />
-          </div>
-          <div>
-            <label className="text-sm font-semibold mb-1 block text-foreground">Role</label>
-            <select name="role" required className="w-full rounded-md border border-border h-10 px-3 bg-background">
-              {Object.values(TribunalRole).map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="text-sm font-semibold mb-1 block text-foreground">Email</label>
-            <input type="email" name="email" required className="w-full rounded-md border border-border h-10 px-3 bg-background" />
-          </div>
-          <div>
-            <label className="text-sm font-semibold mb-1 block text-foreground">Time Zone</label>
-            <input name="timeZone" placeholder="e.g. CET, EST" required className="w-full rounded-md border border-border h-10 px-3 bg-background" />
-          </div>
-          <div className="flex justify-end gap-3 pt-4 border-t border-border mt-6">
-            <button type="button" onClick={() => onClose(false)} className="px-4 py-2 font-medium text-muted-foreground">Cancel</button>
-            <button type="submit" disabled={isPending} className="bg-primary text-primary-foreground px-6 py-2 rounded-md font-medium hover:bg-primary/90 disabled:opacity-50">
-              Add Member
-            </button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
+const STATUS_DOT: Record<string, string> = {
+  Active: "bg-green-400",
+  Pending: "bg-amber-400",
+  Closed: "bg-gray-400",
+  Stayed: "bg-blue-400",
+};
 
-function AddRepModal({ isOpen, onClose, onSave, isPending }: any) {
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-card border-border shadow-2xl p-0 gap-0">
-        <DialogHeader className="p-6 border-b border-border bg-muted/30">
-          <DialogTitle className="font-display text-xl text-foreground">Add Representative</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          const fd = new FormData(e.currentTarget);
-          onSave({
-            name: fd.get("name"),
-            firm: fd.get("firm"),
-            party: fd.get("party"),
-            role: fd.get("role"),
-            email: fd.get("email"),
-            timeZone: fd.get("timeZone"),
-          });
-        }} className="p-6 space-y-4">
-          <div>
-            <label className="text-sm font-semibold mb-1 block text-foreground">Full Name</label>
-            <input name="name" required className="w-full rounded-md border border-border h-10 px-3 bg-background" />
-          </div>
-          <div>
-            <label className="text-sm font-semibold mb-1 block text-foreground">Law Firm</label>
-            <input name="firm" required className="w-full rounded-md border border-border h-10 px-3 bg-background" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-semibold mb-1 block text-foreground">Party</label>
-              <select name="party" required className="w-full rounded-md border border-border h-10 px-3 bg-background">
-                {Object.values(RepresentativeParty).map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-sm font-semibold mb-1 block text-foreground">Role</label>
-              <select name="role" required className="w-full rounded-md border border-border h-10 px-3 bg-background">
-                {Object.values(RepresentativeRole).map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="text-sm font-semibold mb-1 block text-foreground">Email</label>
-            <input type="email" name="email" required className="w-full rounded-md border border-border h-10 px-3 bg-background" />
-          </div>
-          <div>
-            <label className="text-sm font-semibold mb-1 block text-foreground">Time Zone</label>
-            <input name="timeZone" placeholder="e.g. CET, EST" required className="w-full rounded-md border border-border h-10 px-3 bg-background" />
-          </div>
-          <div className="flex justify-end gap-3 pt-4 border-t border-border mt-6">
-            <button type="button" onClick={() => onClose(false)} className="px-4 py-2 font-medium text-muted-foreground">Cancel</button>
-            <button type="submit" disabled={isPending} className="bg-primary text-primary-foreground px-6 py-2 rounded-md font-medium hover:bg-primary/90 disabled:opacity-50">
-              Add Rep
-            </button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-
-// --- Main Component ---
 export default function CaseDashboard({ params }: { params: { id: string } }) {
   const caseId = parseInt(params.id, 10);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"details" | "tribunal" | "reps" | "calendar" | "orders" | "hearing" | "costs">("details");
-  
-  // Modals state
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isTribunalOpen, setIsTribunalOpen] = useState(false);
-  const [isRepOpen, setIsRepOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<Section>("overview");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const qc = useQueryClient();
 
   const { data: caseData, isLoading } = useGetCase(caseId);
 
-  const invalidateCase = () => queryClient.invalidateQueries({ queryKey: getGetCaseQueryKey(caseId) });
+  const invalidateCase = () => qc.invalidateQueries({ queryKey: getGetCaseQueryKey(caseId) });
 
-  const updateCase = useUpdateCase({
-    mutation: {
-      onSuccess: () => { invalidateCase(); setIsEditOpen(false); toast({ title: "Case updated" }); },
-      onError: (e) => toast({ title: "Error updating case", description: e.message, variant: "destructive" })
-    }
-  });
-
-  const addTribunal = useAddTribunalMember({
-    mutation: {
-      onSuccess: () => { invalidateCase(); setIsTribunalOpen(false); toast({ title: "Member added" }); },
-      onError: (e) => toast({ title: "Error", description: e.message, variant: "destructive" })
-    }
-  });
-
-  const deleteTribunal = useDeleteTribunalMember({
-    mutation: {
-      onSuccess: () => { invalidateCase(); toast({ title: "Member removed" }); },
-      onError: (e) => toast({ title: "Error", description: e.message, variant: "destructive" })
-    }
-  });
-
-  const addRep = useAddRepresentative({
-    mutation: {
-      onSuccess: () => { invalidateCase(); setIsRepOpen(false); toast({ title: "Representative added" }); },
-      onError: (e) => toast({ title: "Error", description: e.message, variant: "destructive" })
-    }
-  });
-
-  const deleteRep = useDeleteRepresentative({
-    mutation: {
-      onSuccess: () => { invalidateCase(); toast({ title: "Representative removed" }); },
-      onError: (e) => toast({ title: "Error", description: e.message, variant: "destructive" })
-    }
-  });
-
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+      if (e.key === "Escape") setSearchOpen(false);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   if (isLoading) {
     return (
-      <div className="flex flex-col space-y-6 animate-pulse">
-        <div className="h-32 bg-card rounded-2xl"></div>
-        <div className="h-[500px] bg-card rounded-2xl"></div>
+      <div className="flex items-center justify-center h-64">
+        <div className="w-6 h-6 border-2 border-[#0F2547] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  if (!caseData) return <div className="text-center py-20 text-muted-foreground">Case not found.</div>;
-
-  const claimantsReps = caseData.representatives.filter(r => r.party === RepresentativeParty.Claimant);
-  const respondentsReps = caseData.representatives.filter(r => r.party === RepresentativeParty.Respondent);
-
-  const tabs = [
-    { id: "details", label: "Case Details" },
-    { id: "tribunal", label: `Tribunal (${caseData.tribunalMembers.length})` },
-    { id: "reps", label: `Representatives (${caseData.representatives.length})` },
-    { id: "orders", label: "Procedural Orders" },
-    { id: "calendar", label: "Procedural Calendar" },
-    { id: "hearing", label: "Hearing Logistics" },
-    { id: "costs", label: "Costs Tracker" },
-  ] as const;
+  if (!caseData) {
+    return <div className="text-center py-20 text-gray-500">Case not found.</div>;
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4 mb-2">
-        <Link href="/" className="p-2 -ml-2 rounded-full hover:bg-muted text-muted-foreground transition-colors">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <span className="text-sm font-semibold tracking-wider text-muted-foreground uppercase">
-          Back to list
-        </span>
-      </div>
-
-      {/* Hero Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-primary text-primary-foreground shadow-xl">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 text-primary-foreground/5">
-          <Scale className="w-64 h-64" strokeWidth={1} />
-        </div>
-        <div className="relative z-10 p-8 sm:p-10">
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
-            <div className="inline-flex px-3 py-1 rounded-md bg-primary-foreground/10 border border-primary-foreground/20 text-sm font-mono font-medium">
-              {caseData.caseReference}
-            </div>
-            <StatusBadge status={caseData.status} className="bg-primary-foreground text-primary border-transparent shadow-md px-4 py-1.5 text-sm" />
-          </div>
-          <h1 className="text-3xl sm:text-5xl font-display font-bold max-w-3xl leading-tight">
-            {caseData.caseName}
-          </h1>
-          <div className="mt-8 flex flex-wrap gap-6 text-sm text-primary-foreground/80 font-medium">
-            <span className="flex items-center gap-2"><MapPin className="w-4 h-4" /> {caseData.seatOfArbitration}</span>
-            <span className="flex items-center gap-2"><Globe className="w-4 h-4" /> {caseData.languageOfArbitration}</span>
-            <span className="flex items-center gap-2"><Book className="w-4 h-4" /> {caseData.applicableRules}</span>
+    <div className="flex h-[calc(100vh-56px)]">
+      {/* ── Sidebar (desktop) ── */}
+      <aside className="hidden md:flex w-52 flex-shrink-0 bg-[#0F2547] flex-col print:hidden overflow-y-auto">
+        {/* Back + Case Info */}
+        <div className="p-4 border-b border-white/10 flex-shrink-0">
+          <Link href="/" className="flex items-center gap-1.5 text-white/60 hover:text-white text-xs mb-3 transition-colors">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            All Cases
+          </Link>
+          <div className="font-mono text-[10px] text-blue-300 tracking-wider uppercase">{caseData.caseReference}</div>
+          <div className="text-white font-semibold text-sm mt-1 leading-snug line-clamp-2">{caseData.caseName}</div>
+          <div className="flex items-center gap-1.5 mt-2">
+            <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${STATUS_DOT[caseData.status] ?? "bg-gray-400"}`} />
+            <span className="text-xs text-blue-200">{caseData.status}</span>
           </div>
         </div>
-      </div>
 
-      {/* Tabs Layout */}
-      <div className="bg-card rounded-2xl shadow-sm border border-border">
-        <div className="flex space-x-8 px-8 border-b border-border overflow-x-auto no-scrollbar">
-          {tabs.map(tab => (
+        {/* Search Button */}
+        <div className="px-3 py-2 border-b border-white/10 flex-shrink-0">
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors text-xs"
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span>Search…</span>
+            <span className="ml-auto font-mono opacity-60">⌘K</span>
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-2 space-y-0.5">
+          {NAV_ITEMS.map((item) => (
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "relative py-5 text-sm font-semibold transition-colors whitespace-nowrap",
-                activeTab === tab.id ? "text-primary" : "text-muted-foreground hover:text-foreground"
-              )}
+              key={item.id}
+              onClick={() => setActiveSection(item.id)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                activeSection === item.id
+                  ? "bg-white/20 text-white shadow-sm"
+                  : "text-white/65 hover:bg-white/10 hover:text-white"
+              }`}
             >
-              {tab.label}
-              {activeTab === tab.id && (
-                <motion.div 
-                  layoutId="activeTab" 
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" 
-                />
-              )}
+              <item.icon className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate">{item.label}</span>
+              {activeSection === item.id && <ChevronRight className="w-3 h-3 ml-auto opacity-60" />}
             </button>
           ))}
+        </nav>
+
+        {/* Footer */}
+        <div className="p-3 border-t border-white/10 flex-shrink-0">
+          <p className="text-xs text-white/30 text-center">ICC Procedural Manager</p>
         </div>
+      </aside>
 
-        <div className="p-8">
-          {/* Details Tab */}
-          {activeTab === "details" && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
-              <div className="flex justify-between items-center">
-                <h3 className="text-xl font-display font-bold text-foreground">Procedural Overview</h3>
-                <button onClick={() => setIsEditOpen(true)} className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:bg-primary/5 px-4 py-2 rounded-lg transition-colors border border-primary/20">
-                  <Edit3 className="w-4 h-4" /> Edit Details
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-2">
-                      <UserCircle className="w-4 h-4" /> Claimants
-                    </h4>
-                    <p className="text-foreground whitespace-pre-wrap leading-relaxed">{caseData.claimants}</p>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-2">
-                      <UserCircle className="w-4 h-4" /> Respondents
-                    </h4>
-                    <p className="text-foreground whitespace-pre-wrap leading-relaxed">{caseData.respondents}</p>
-                  </div>
-                </div>
-
-                <div className="bg-muted/30 rounded-xl p-6 border border-border/50 space-y-6">
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Date of Request</h4>
-                      <p className="font-semibold flex items-center gap-2"><Calendar className="w-4 h-4 text-muted-foreground" /> {formatDate(caseData.dateOfRequest)}</p>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Currency</h4>
-                      <p className="font-semibold flex items-center gap-2"><DollarSign className="w-4 h-4 text-muted-foreground" /> {caseData.currency}</p>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Seat</h4>
-                      <p className="font-semibold">{caseData.seatOfArbitration}</p>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Language</h4>
-                      <p className="font-semibold">{caseData.languageOfArbitration}</p>
-                    </div>
-                    <div className="col-span-2 pt-4 border-t border-border/50">
-                      <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Applicable Rules</h4>
-                      <p className="font-semibold text-primary">{caseData.applicableRules}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Tribunal Tab */}
-          {activeTab === "tribunal" && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-xl font-display font-bold text-foreground">Arbitral Tribunal</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Manage the appointed arbitrators for this case.</p>
-                </div>
-                <button onClick={() => setIsTribunalOpen(true)} className="inline-flex items-center gap-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-lg transition-all shadow-sm">
-                  <Plus className="w-4 h-4" /> Add Member
-                </button>
-              </div>
-
-              {caseData.tribunalMembers.length === 0 ? (
-                <div className="p-12 text-center border border-dashed border-border rounded-xl bg-muted/20">
-                  <Scale className="w-10 h-10 text-muted-foreground mx-auto mb-4 opacity-50" />
-                  <p className="text-muted-foreground font-medium">No tribunal members appointed yet.</p>
-                </div>
-              ) : (
-                <div className="overflow-hidden rounded-xl border border-border">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-muted text-muted-foreground uppercase tracking-wider text-xs font-bold">
-                      <tr>
-                        <th className="px-6 py-4">Name</th>
-                        <th className="px-6 py-4">Role</th>
-                        <th className="px-6 py-4">Contact</th>
-                        <th className="px-6 py-4">Time Zone</th>
-                        <th className="px-6 py-4 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border bg-card">
-                      {caseData.tribunalMembers.map((m: TribunalMember) => (
-                        <tr key={m.id} className="hover:bg-muted/30 transition-colors">
-                          <td className="px-6 py-4 font-semibold text-foreground">{m.name}</td>
-                          <td className="px-6 py-4">
-                            <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                              {m.role}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-muted-foreground">{m.email}</td>
-                          <td className="px-6 py-4 text-muted-foreground">{m.timeZone}</td>
-                          <td className="px-6 py-4 text-right">
-                            <button 
-                              onClick={() => deleteTribunal.mutate({ caseId, memberId: m.id })}
-                              className="text-destructive hover:bg-destructive/10 p-2 rounded-md transition-colors"
-                              title="Remove"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </motion.div>
-          )}
-
-          {/* Representatives Tab */}
-          {activeTab === "reps" && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-xl font-display font-bold text-foreground">Party Representatives</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Manage external counsel representing both parties.</p>
-                </div>
-                <button onClick={() => setIsRepOpen(true)} className="inline-flex items-center gap-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-lg transition-all shadow-sm">
-                  <Plus className="w-4 h-4" /> Add Representative
-                </button>
-              </div>
-
-              <div className="space-y-8">
-                {/* Claimants Table */}
-                <div>
-                  <h4 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2 border-l-4 border-primary pl-3">
-                    Claimant Representatives
-                  </h4>
-                  {claimantsReps.length === 0 ? (
-                    <div className="p-8 text-center border border-dashed border-border rounded-xl bg-muted/10 text-sm text-muted-foreground">No claimant representatives added.</div>
-                  ) : (
-                    <RepTable reps={claimantsReps} onDelete={(repId) => deleteRep.mutate({ caseId, repId })} />
-                  )}
-                </div>
-
-                {/* Respondents Table */}
-                <div>
-                  <h4 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2 border-l-4 border-slate-400 pl-3">
-                    Respondent Representatives
-                  </h4>
-                  {respondentsReps.length === 0 ? (
-                    <div className="p-8 text-center border border-dashed border-border rounded-xl bg-muted/10 text-sm text-muted-foreground">No respondent representatives added.</div>
-                  ) : (
-                    <RepTable reps={respondentsReps} onDelete={(repId) => deleteRep.mutate({ caseId, repId })} />
-                  )}
-                </div>
-              </div>
-
-            </motion.div>
-          )}
-
-          {/* Procedural Orders Tab */}
-          {activeTab === "orders" && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <ProceduralOrders
-                caseId={caseId}
-                caseRef={caseData.caseReference}
-              />
-            </motion.div>
-          )}
-
-          {/* Procedural Calendar Tab */}
-          {activeTab === "calendar" && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <ProceduralCalendar
-                caseId={caseId}
-                dateOfRequest={caseData.dateOfRequest}
-              />
-            </motion.div>
-          )}
-
-          {/* Hearing Logistics Tab */}
-          {activeTab === "hearing" && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <HearingLogistics caseId={caseId} />
-            </motion.div>
-          )}
-
-          {/* Costs Tracker Tab */}
-          {activeTab === "costs" && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <CostsTracker caseId={caseId} caseRef={caseData.caseReference} />
-            </motion.div>
-          )}
-
+      {/* ── Mobile Top Nav ── */}
+      <div className="md:hidden fixed top-14 left-0 right-0 z-10 bg-[#0F2547] print:hidden">
+        <div className="flex items-center gap-1 px-3 py-2 overflow-x-auto scrollbar-hide border-b border-white/10">
+          <Link href="/" className="flex-shrink-0 text-white/60 hover:text-white mr-2">
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          {NAV_ITEMS.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveSection(item.id)}
+              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                activeSection === item.id ? "bg-white text-[#0F2547]" : "text-white/70 hover:text-white"
+              }`}
+            >
+              <item.icon className="w-3.5 h-3.5" />
+              {item.shortLabel}
+            </button>
+          ))}
+          <button onClick={() => setSearchOpen(true)} className="flex-shrink-0 text-white/60 hover:text-white ml-auto pl-2">
+            <Search className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      {/* Modals */}
-      <EditCaseModal 
-        isOpen={isEditOpen} 
-        onClose={setIsEditOpen} 
-        caseData={caseData} 
-        onSave={(data: any) => updateCase.mutate({ id: caseId, data })}
-        isPending={updateCase.isPending}
-      />
-      <AddTribunalModal 
-        isOpen={isTribunalOpen} 
-        onClose={setIsTribunalOpen} 
-        onSave={(data: any) => addTribunal.mutate({ caseId, data })}
-        isPending={addTribunal.isPending}
-      />
-      <AddRepModal 
-        isOpen={isRepOpen} 
-        onClose={setIsRepOpen} 
-        onSave={(data: any) => addRep.mutate({ caseId, data })}
-        isPending={addRep.isPending}
-      />
+      {/* ── Main Content ── */}
+      <main className="flex-1 overflow-auto bg-gray-50/50 md:mt-0 mt-14 print:bg-white">
+        <div className="p-6 md:p-8 max-w-5xl print:p-4">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeSection}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              {activeSection === "overview" && (
+                <CaseOverview caseId={caseId} caseData={caseData as any} />
+              )}
+              {activeSection === "calendar" && <ProceduralCalendar caseId={caseId} />}
+              {activeSection === "exhibits" && <Exhibits caseId={caseId} />}
+              {activeSection === "orders" && <ProceduralOrders caseId={caseId} />}
+              {activeSection === "hearing" && <HearingLogistics caseId={caseId} />}
+              {activeSection === "costs" && (
+                <CostsTracker caseId={caseId} caseRef={caseData.caseReference} />
+              )}
+              {activeSection === "settings" && (
+                <CaseSettings
+                  caseId={caseId}
+                  caseData={caseData as any}
+                  onInvalidate={invalidateCase}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </main>
 
+      {/* ── Search Modal ── */}
+      <AnimatePresence>
+        {searchOpen && (
+          <SearchModal
+            caseId={caseId}
+            onClose={() => setSearchOpen(false)}
+            onNavigate={(section) => {
+              setActiveSection(section);
+              setSearchOpen(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-function RepTable({ reps, onDelete }: { reps: Representative[], onDelete: (id: number) => void }) {
+/* ── Search Modal ── */
+function SearchModal({
+  caseId,
+  onClose,
+  onNavigate,
+}: {
+  caseId: number;
+  onClose: () => void;
+  onNavigate: (section: Section) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { inputRef.current?.focus(); }, []);
+
+  const { data: results, isFetching } = useQuery({
+    queryKey: ["search", caseId, query],
+    queryFn: () =>
+      fetch(`/api/cases/${caseId}/search?q=${encodeURIComponent(query)}`).then((r) => r.json()),
+    enabled: query.trim().length >= 2,
+    staleTime: 2000,
+  });
+
+  const hasResults =
+    results &&
+    (results.deadlines?.length > 0 ||
+      results.exhibits?.length > 0 ||
+      results.orders?.length > 0 ||
+      results.timeEntries?.length > 0);
+
   return (
-    <div className="overflow-hidden rounded-xl border border-border shadow-sm">
-      <table className="w-full text-left text-sm">
-        <thead className="bg-muted/50 text-muted-foreground uppercase tracking-wider text-xs font-bold">
-          <tr>
-            <th className="px-6 py-3">Name / Firm</th>
-            <th className="px-6 py-3">Role</th>
-            <th className="px-6 py-3">Contact</th>
-            <th className="px-6 py-3">Time Zone</th>
-            <th className="px-6 py-3 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border bg-card">
-          {reps.map((r) => (
-            <tr key={r.id} className="hover:bg-muted/30 transition-colors">
-              <td className="px-6 py-3">
-                <div className="font-semibold text-foreground">{r.name}</div>
-                <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5"><Building2 className="w-3 h-3"/> {r.firm}</div>
-              </td>
-              <td className="px-6 py-3 font-medium text-slate-600">{r.role}</td>
-              <td className="px-6 py-3 text-muted-foreground">{r.email}</td>
-              <td className="px-6 py-3 text-muted-foreground">{r.timeZone}</td>
-              <td className="px-6 py-3 text-right">
-                <button 
-                  onClick={() => onDelete(r.id)}
-                  className="text-destructive hover:bg-destructive/10 p-2 rounded-md transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-start justify-center pt-[15vh] px-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.96, y: -8 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.96 }}
+        transition={{ duration: 0.15 }}
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100">
+          <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search deadlines, exhibits, orders, time entries…"
+            className="flex-1 text-sm outline-none text-gray-800 placeholder:text-gray-400"
+          />
+          {query && (
+            <button onClick={() => setQuery("")} className="text-gray-400 hover:text-gray-600">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+          <button onClick={onClose} className="text-xs text-gray-400 hover:text-gray-600 ml-1 px-2 py-1 rounded bg-gray-100">
+            Esc
+          </button>
+        </div>
+
+        <div className="max-h-[60vh] overflow-y-auto">
+          {query.length < 2 ? (
+            <div className="p-6 text-center text-gray-400 text-sm">Type at least 2 characters to search</div>
+          ) : isFetching ? (
+            <div className="p-6 text-center text-gray-400 text-sm">Searching…</div>
+          ) : !hasResults ? (
+            <div className="p-6 text-center text-gray-400 text-sm">No results for "{query}"</div>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {results.deadlines?.length > 0 && (
+                <SearchGroup
+                  label="Deadlines"
+                  items={results.deadlines.map((d: any) => ({ id: d.id, title: d.description, sub: d.dueDate, section: "calendar" as Section }))}
+                  onNavigate={onNavigate}
+                />
+              )}
+              {results.exhibits?.length > 0 && (
+                <SearchGroup
+                  label="Exhibits"
+                  items={results.exhibits.map((e: any) => ({ id: e.id, title: `${e.exhibitNumber} — ${e.description}`, sub: `${e.party} · ${e.status}`, section: "exhibits" as Section }))}
+                  onNavigate={onNavigate}
+                />
+              )}
+              {results.orders?.length > 0 && (
+                <SearchGroup
+                  label="Procedural Orders"
+                  items={results.orders.map((o: any) => ({ id: o.id, title: `${o.poNumber}: ${o.summary}`, sub: o.isFinalized ? "Finalized" : "Draft", section: "orders" as Section }))}
+                  onNavigate={onNavigate}
+                />
+              )}
+              {results.timeEntries?.length > 0 && (
+                <SearchGroup
+                  label="Time Entries"
+                  items={results.timeEntries.map((t: any) => ({ id: t.id, title: t.description, sub: `${t.memberName} · ${t.phase}`, section: "costs" as Section }))}
+                  onNavigate={onNavigate}
+                />
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50 flex gap-4 text-xs text-gray-400">
+          <span>↑↓ navigate</span>
+          <span>↵ open section</span>
+          <span>Esc close</span>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function SearchGroup({
+  label,
+  items,
+  onNavigate,
+}: {
+  label: string;
+  items: { id: number; title: string; sub?: string; section: Section }[];
+  onNavigate: (section: Section) => void;
+}) {
+  return (
+    <div className="p-2">
+      <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2 py-1.5">{label}</div>
+      {items.map((item) => (
+        <button
+          key={item.id}
+          onClick={() => onNavigate(item.section)}
+          className="w-full flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-[#0F2547]/5 text-left transition-colors group"
+        >
+          <div className="flex-1 min-w-0">
+            <div className="text-sm text-gray-800 group-hover:text-[#0F2547] font-medium truncate">{item.title}</div>
+            {item.sub && <div className="text-xs text-gray-400 mt-0.5">{item.sub}</div>}
+          </div>
+          <ChevronRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-[#0F2547] flex-shrink-0 mt-0.5" />
+        </button>
+      ))}
     </div>
   );
 }

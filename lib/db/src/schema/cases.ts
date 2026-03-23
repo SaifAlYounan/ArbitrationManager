@@ -216,3 +216,30 @@ export const costsSettingsTable = pgTable("costs_settings", {
 export const insertCostsSettingsSchema = createInsertSchema(costsSettingsTable).omit({ id: true });
 export type InsertCostsSettings = z.infer<typeof insertCostsSettingsSchema>;
 export type CostsSettings = typeof costsSettingsTable.$inferSelect;
+
+export const exhibitsTable = pgTable("exhibits", {
+  id: serial("id").primaryKey(),
+  caseId: integer("case_id").notNull().references(() => casesTable.id, { onDelete: "cascade" }),
+  exhibitNumber: text("exhibit_number").notNull(),
+  party: text("party").notNull().default("Claimant"),
+  description: text("description").notNull(),
+  date: text("date").notNull(),
+  docRef: text("doc_ref"),
+  status: text("status").notNull().default("Filed"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const insertExhibitSchema = createInsertSchema(exhibitsTable).omit({ id: true, createdAt: true });
+export type InsertExhibit = z.infer<typeof insertExhibitSchema>;
+export type Exhibit = typeof exhibitsTable.$inferSelect;
+
+export const casePreferencesTable = pgTable("case_preferences", {
+  id: serial("id").primaryKey(),
+  caseId: integer("case_id").notNull().unique().references(() => casesTable.id, { onDelete: "cascade" }),
+  reminderDays: integer("reminder_days").notNull().default(7),
+  emailNotifications: boolean("email_notifications").notNull().default(false),
+  reminderEmail: text("reminder_email"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+export const insertCasePreferencesSchema = createInsertSchema(casePreferencesTable).omit({ id: true });
+export type InsertCasePreferences = z.infer<typeof insertCasePreferencesSchema>;
+export type CasePreferences = typeof casePreferencesTable.$inferSelect;

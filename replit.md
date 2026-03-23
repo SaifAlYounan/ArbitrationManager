@@ -44,7 +44,12 @@ A professional web app for managing ICC international arbitration cases.
 
 - **Case List** (landing page): Card grid showing all cases with reference, name, parties, and status badge
 - **New Case Form** (`/cases/new`): Create cases with all procedural fields
-- **Case Dashboard** (`/cases/:id`): Six-tab dashboard — Case Details, Tribunal, Representatives, Procedural Orders, Procedural Calendar, Hearing Logistics
+- **Case Dashboard** (`/cases/:id`): Sidebar-based dashboard with 7 sections — Overview, Calendar, Exhibits, Procedural Orders, Hearing Logistics, Costs Tracker, Settings
+  - **Sidebar**: Navy (#0F2547) left sidebar showing case reference, name, status dot, global search button (⌘K), and navigation items; mobile-friendly horizontal scroll nav on small screens
+  - **Overview**: Navy case header card, 5 live stat cards (Exhibits Filed, POs Issued, Hours Logged, Costs to Date, Days Since RA), overdue deadlines panel, activity feed
+  - **Global Search**: Command-palette modal (⌘K), searches deadlines/exhibits/POs/time entries via `/api/cases/:id/search?q=`
+  - **Exhibits**: Register exhibit with auto-numbering (C-001/R-001 by party), party filter, status filter, edit and delete
+  - **Settings**: Consolidated tab with sub-sections — Case Details, Tribunal, Representatives, Budget & Costs, Reminders
 
 ### Hearing Logistics Tab
 
@@ -101,6 +106,8 @@ PostgreSQL tables via Drizzle ORM:
 - `time_entries` — time logs per case (date, hours, phase, description, rateCardId FK)
 - `disbursements` — non-time costs per case (category, amount, currency, date, description, docRef, party)
 - `costs_settings` — per-case ICC advance and budget settings (iccAdvanceAmount, claimantPaid, respondentPaid, totalBudget, budgetCurrency, notes)
+- `exhibits` — exhibit register (exhibitNumber e.g. C-001/R-001, party, description, date, docRef, status: Filed/Pending/Agreed/Disputed)
+- `case_preferences` — per-case reminder settings (reminderDays, emailNotifications, reminderEmail)
 
 ### API Endpoints (Express, prefixed at `/api`)
 
@@ -122,6 +129,12 @@ PostgreSQL tables via Drizzle ORM:
 - `PUT/DELETE /api/cases/:caseId/disbursements/:disbId`
 - `GET /api/cases/:caseId/costs-settings` — get costs settings (returns defaults if not set)
 - `PUT /api/cases/:caseId/costs-settings` — upsert costs settings
+- `GET/POST /api/cases/:caseId/exhibits` — exhibit register (POST auto-generates exhibitNumber if omitted)
+- `PUT/DELETE /api/cases/:caseId/exhibits/:exhibitId` — update/delete exhibit
+- `GET /api/cases/:caseId/activity` — last 10 activities merged from all tables
+- `GET /api/cases/:caseId/search?q=` — ilike search across deadlines, exhibits, POs, time entries
+- `GET /api/cases/:caseId/preferences` — get reminder preferences (returns defaults if not set)
+- `PUT /api/cases/:caseId/preferences` — upsert reminder preferences
 
 ### Important Notes
 

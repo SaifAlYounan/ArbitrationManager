@@ -344,6 +344,116 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /cases/{caseId}/exhibits:
+    get:
+      operationId: listExhibits
+      tags: [exhibits]
+      summary: List exhibits for a case
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of exhibits
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Exhibit"
+    post:
+      operationId: addExhibit
+      tags: [exhibits]
+      summary: Register an exhibit
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateExhibitRequest"
+      responses:
+        "201":
+          description: Exhibit created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Exhibit"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/exhibits/{exhibitId}:
+    put:
+      operationId: updateExhibit
+      tags: [exhibits]
+      summary: Update an exhibit
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: exhibitId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateExhibitRequest"
+      responses:
+        "200":
+          description: Updated exhibit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Exhibit"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteExhibit
+      tags: [exhibits]
+      summary: Delete an exhibit
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: exhibitId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /cases/{caseId}/rate-card:
     get:
       operationId: listRateCard
@@ -1720,6 +1830,72 @@ components:
         - status
         - createdAt
         - updatedAt
+
+    ExhibitStatus:
+      type: string
+      enum:
+        - Filed
+        - Pending
+        - Agreed
+        - Disputed
+
+    Exhibit:
+      type: object
+      properties:
+        id:
+          type: integer
+        caseId:
+          type: integer
+        exhibitNumber:
+          type: string
+        party:
+          $ref: "#/components/schemas/CostParty"
+        description:
+          type: string
+        date:
+          type: string
+          format: date
+        docRef:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/ExhibitStatus"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - caseId
+        - exhibitNumber
+        - party
+        - description
+        - date
+        - status
+        - createdAt
+
+    CreateExhibitRequest:
+      type: object
+      properties:
+        exhibitNumber:
+          type: string
+        party:
+          $ref: "#/components/schemas/CostParty"
+        description:
+          type: string
+        date:
+          type: string
+          format: date
+        docRef:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/ExhibitStatus"
+      required:
+        - exhibitNumber
+        - party
+        - description
+        - date
+        - status
 
     CostPhase:
       type: string

@@ -307,6 +307,79 @@ export const DeleteRepresentativeParams = zod.object({
 });
 
 /**
+ * @summary List exhibits for a case
+ */
+export const ListExhibitsParams = zod.object({
+  caseId: zod.coerce.number(),
+});
+
+export const ListExhibitsResponseItem = zod.object({
+  id: zod.number(),
+  caseId: zod.number(),
+  exhibitNumber: zod.string(),
+  party: zod.enum(["Claimant", "Respondent"]),
+  description: zod.string(),
+  date: zod.date(),
+  docRef: zod.string().nullish(),
+  status: zod.enum(["Filed", "Pending", "Agreed", "Disputed"]),
+  createdAt: zod.date(),
+});
+export const ListExhibitsResponse = zod.array(ListExhibitsResponseItem);
+
+/**
+ * @summary Register an exhibit
+ */
+export const AddExhibitParams = zod.object({
+  caseId: zod.coerce.number(),
+});
+
+export const AddExhibitBody = zod.object({
+  exhibitNumber: zod.string(),
+  party: zod.enum(["Claimant", "Respondent"]),
+  description: zod.string(),
+  date: zod.date(),
+  docRef: zod.string().nullish(),
+  status: zod.enum(["Filed", "Pending", "Agreed", "Disputed"]),
+});
+
+/**
+ * @summary Update an exhibit
+ */
+export const UpdateExhibitParams = zod.object({
+  caseId: zod.coerce.number(),
+  exhibitId: zod.coerce.number(),
+});
+
+export const UpdateExhibitBody = zod.object({
+  exhibitNumber: zod.string(),
+  party: zod.enum(["Claimant", "Respondent"]),
+  description: zod.string(),
+  date: zod.date(),
+  docRef: zod.string().nullish(),
+  status: zod.enum(["Filed", "Pending", "Agreed", "Disputed"]),
+});
+
+export const UpdateExhibitResponse = zod.object({
+  id: zod.number(),
+  caseId: zod.number(),
+  exhibitNumber: zod.string(),
+  party: zod.enum(["Claimant", "Respondent"]),
+  description: zod.string(),
+  date: zod.date(),
+  docRef: zod.string().nullish(),
+  status: zod.enum(["Filed", "Pending", "Agreed", "Disputed"]),
+  createdAt: zod.date(),
+});
+
+/**
+ * @summary Delete an exhibit
+ */
+export const DeleteExhibitParams = zod.object({
+  caseId: zod.coerce.number(),
+  exhibitId: zod.coerce.number(),
+});
+
+/**
  * @summary List team rate card members for a case
  */
 export const ListRateCardParams = zod.object({

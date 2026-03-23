@@ -163,6 +163,43 @@ export interface Deadline {
   updatedAt: string;
 }
 
+export type ExhibitStatus = (typeof ExhibitStatus)[keyof typeof ExhibitStatus];
+
+export const ExhibitStatus = {
+  Filed: "Filed",
+  Pending: "Pending",
+  Agreed: "Agreed",
+  Disputed: "Disputed",
+} as const;
+
+export type CostParty = (typeof CostParty)[keyof typeof CostParty];
+
+export const CostParty = {
+  Claimant: "Claimant",
+  Respondent: "Respondent",
+} as const;
+
+export interface Exhibit {
+  id: number;
+  caseId: number;
+  exhibitNumber: string;
+  party: CostParty;
+  description: string;
+  date: string;
+  docRef?: string | null;
+  status: ExhibitStatus;
+  createdAt: string;
+}
+
+export interface CreateExhibitRequest {
+  exhibitNumber: string;
+  party: CostParty;
+  description: string;
+  date: string;
+  docRef?: string | null;
+  status: ExhibitStatus;
+}
+
 export type CostPhase = (typeof CostPhase)[keyof typeof CostPhase];
 
 export const CostPhase = {
@@ -187,13 +224,6 @@ export const DisbursementCategory = {
   ICC_Administrative_Costs: "ICC Administrative Costs",
   Courier: "Courier",
   Other: "Other",
-} as const;
-
-export type CostParty = (typeof CostParty)[keyof typeof CostParty];
-
-export const CostParty = {
-  Claimant: "Claimant",
-  Respondent: "Respondent",
 } as const;
 
 export interface RateCardMember {
