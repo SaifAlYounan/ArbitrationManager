@@ -305,3 +305,86 @@ export const DeleteRepresentativeParams = zod.object({
   caseId: zod.coerce.number(),
   repId: zod.coerce.number(),
 });
+
+/**
+ * @summary List procedural deadlines for a case
+ */
+export const ListDeadlinesParams = zod.object({
+  caseId: zod.coerce.number(),
+});
+
+export const ListDeadlinesResponseItem = zod.object({
+  id: zod.number(),
+  caseId: zod.number(),
+  description: zod.string(),
+  responsibleParty: zod.enum(["Claimant", "Respondent", "Tribunal", "All"]),
+  dueDate: zod.date(),
+  originalDueDate: zod.date().nullish(),
+  status: zod.enum(["Pending", "Completed", "Extended"]),
+  proceduralOrderRef: zod.string().nullish(),
+  extensionOrderRef: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+export const ListDeadlinesResponse = zod.array(ListDeadlinesResponseItem);
+
+/**
+ * @summary Add a procedural deadline to a case
+ */
+export const AddDeadlineParams = zod.object({
+  caseId: zod.coerce.number(),
+});
+
+export const AddDeadlineBody = zod.object({
+  description: zod.string(),
+  responsibleParty: zod.enum(["Claimant", "Respondent", "Tribunal", "All"]),
+  dueDate: zod.date(),
+  originalDueDate: zod.date().nullish(),
+  status: zod.enum(["Pending", "Completed", "Extended"]),
+  proceduralOrderRef: zod.string().nullish(),
+  extensionOrderRef: zod.string().nullish(),
+  notes: zod.string().nullish(),
+});
+
+/**
+ * @summary Update a procedural deadline
+ */
+export const UpdateDeadlineParams = zod.object({
+  caseId: zod.coerce.number(),
+  deadlineId: zod.coerce.number(),
+});
+
+export const UpdateDeadlineBody = zod.object({
+  description: zod.string(),
+  responsibleParty: zod.enum(["Claimant", "Respondent", "Tribunal", "All"]),
+  dueDate: zod.date(),
+  originalDueDate: zod.date().nullish(),
+  status: zod.enum(["Pending", "Completed", "Extended"]),
+  proceduralOrderRef: zod.string().nullish(),
+  extensionOrderRef: zod.string().nullish(),
+  notes: zod.string().nullish(),
+});
+
+export const UpdateDeadlineResponse = zod.object({
+  id: zod.number(),
+  caseId: zod.number(),
+  description: zod.string(),
+  responsibleParty: zod.enum(["Claimant", "Respondent", "Tribunal", "All"]),
+  dueDate: zod.date(),
+  originalDueDate: zod.date().nullish(),
+  status: zod.enum(["Pending", "Completed", "Extended"]),
+  proceduralOrderRef: zod.string().nullish(),
+  extensionOrderRef: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+
+/**
+ * @summary Remove a procedural deadline
+ */
+export const DeleteDeadlineParams = zod.object({
+  caseId: zod.coerce.number(),
+  deadlineId: zod.coerce.number(),
+});

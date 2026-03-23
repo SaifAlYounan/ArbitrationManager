@@ -27,24 +27,40 @@ import {
   DeleteRepresentativeParams,
 } from "@workspace/api-zod";
 
+function coerceCaseDates(body: any) {
+  const result = { ...body };
+  if (typeof result.dateOfRequest === "string") result.dateOfRequest = new Date(result.dateOfRequest);
+  return result;
+}
+
+function flattenCaseBody(parsed: any): any {
+  return {
+    ...parsed,
+    dateOfRequest: parsed.dateOfRequest instanceof Date
+      ? parsed.dateOfRequest.toISOString().split("T")[0]
+      : parsed.dateOfRequest,
+  };
+}
+
 const router: IRouter = Router();
 
 router.get("/cases", async (req, res): Promise<void> => {
   const cases = await db.select().from(casesTable).orderBy(casesTable.createdAt);
-  res.json(ListCasesResponse.parse(cases));
+  res.json(cases);
 });
 
 router.post("/cases", async (req, res): Promise<void> => {
-  const parsed = CreateCaseBody.safeParse(req.body);
+  const parsed = CreateCaseBody.safeParse(coerceCaseDates(req.body));
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
+  const values = flattenCaseBody(parsed.data);
   const [newCase] = await db.insert(casesTable).values({
-    ...parsed.data,
-    status: parsed.data.status ?? "Active",
+    ...values,
+    status: values.status ?? "Active",
   }).returning();
-  res.status(201).json(GetCaseResponse.parse({ ...newCase, tribunalMembers: [], representatives: [] }));
+  res.status(201).json({ ...newCase, tribunalMembers: [], representatives: [] });
 });
 
 router.get("/cases/:id", async (req, res): Promise<void> => {
@@ -60,7 +76,7 @@ router.get("/cases/:id", async (req, res): Promise<void> => {
   }
   const tribunalMembers = await db.select().from(tribunalMembersTable).where(eq(tribunalMembersTable.caseId, caseRow.id));
   const representatives = await db.select().from(representativesTable).where(eq(representativesTable.caseId, caseRow.id));
-  res.json(GetCaseResponse.parse({ ...caseRow, tribunalMembers, representatives }));
+  res.json({ ...caseRow, tribunalMembers, representatives });
 });
 
 router.put("/cases/:id", async (req, res): Promise<void> => {
@@ -69,17 +85,18 @@ router.put("/cases/:id", async (req, res): Promise<void> => {
     res.status(400).json({ error: params.error.message });
     return;
   }
-  const parsed = UpdateCaseBody.safeParse(req.body);
+  const parsed = UpdateCaseBody.safeParse(coerceCaseDates(req.body));
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const [updated] = await db.update(casesTable).set(parsed.data).where(eq(casesTable.id, params.data.id)).returning();
+  const values = flattenCaseBody(parsed.data);
+  const [updated] = await db.update(casesTable).set(values).where(eq(casesTable.id, params.data.id)).returning();
   if (!updated) {
     res.status(404).json({ error: "Case not found" });
     return;
   }
-  res.json(UpdateCaseResponse.parse(updated));
+  res.json(updated);
 });
 
 router.get("/cases/:caseId/tribunal", async (req, res): Promise<void> => {
@@ -89,7 +106,7 @@ router.get("/cases/:caseId/tribunal", async (req, res): Promise<void> => {
     return;
   }
   const members = await db.select().from(tribunalMembersTable).where(eq(tribunalMembersTable.caseId, params.data.caseId));
-  res.json(ListTribunalMembersResponse.parse(members));
+  res.json(members);
 });
 
 router.post("/cases/:caseId/tribunal", async (req, res): Promise<void> => {
@@ -123,7 +140,7 @@ router.put("/cases/:caseId/tribunal/:memberId", async (req, res): Promise<void> 
     res.status(404).json({ error: "Tribunal member not found" });
     return;
   }
-  res.json(UpdateTribunalMemberResponse.parse(updated));
+  res.json(updated);
 });
 
 router.delete("/cases/:caseId/tribunal/:memberId", async (req, res): Promise<void> => {
@@ -147,7 +164,7 @@ router.get("/cases/:caseId/representatives", async (req, res): Promise<void> => 
     return;
   }
   const reps = await db.select().from(representativesTable).where(eq(representativesTable.caseId, params.data.caseId));
-  res.json(ListRepresentativesResponse.parse(reps));
+  res.json(reps);
 });
 
 router.post("/cases/:caseId/representatives", async (req, res): Promise<void> => {
@@ -181,7 +198,7 @@ router.put("/cases/:caseId/representatives/:repId", async (req, res): Promise<vo
     res.status(404).json({ error: "Representative not found" });
     return;
   }
-  res.json(UpdateRepresentativeResponse.parse(updated));
+  res.json(updated);
 });
 
 router.delete("/cases/:caseId/representatives/:repId", async (req, res): Promise<void> => {

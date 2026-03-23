@@ -20,8 +20,10 @@ import type {
   Case,
   CaseDetail,
   CreateCaseRequest,
+  CreateDeadlineRequest,
   CreateRepresentativeRequest,
   CreateTribunalMemberRequest,
+  Deadline,
   ErrorResponse,
   HealthStatus,
   Representative,
@@ -1180,4 +1182,363 @@ export const useDeleteRepresentative = <
   TContext
 > => {
   return useMutation(getDeleteRepresentativeMutationOptions(options));
+};
+
+/**
+ * @summary List procedural deadlines for a case
+ */
+export const getListDeadlinesUrl = (caseId: number) => {
+  return `/api/cases/${caseId}/deadlines`;
+};
+
+export const listDeadlines = async (
+  caseId: number,
+  options?: RequestInit,
+): Promise<Deadline[]> => {
+  return customFetch<Deadline[]>(getListDeadlinesUrl(caseId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListDeadlinesQueryKey = (caseId: number) => {
+  return [`/api/cases/${caseId}/deadlines`] as const;
+};
+
+export const getListDeadlinesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listDeadlines>>,
+  TError = ErrorType<unknown>,
+>(
+  caseId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listDeadlines>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListDeadlinesQueryKey(caseId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listDeadlines>>> = ({
+    signal,
+  }) => listDeadlines(caseId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!caseId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listDeadlines>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListDeadlinesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listDeadlines>>
+>;
+export type ListDeadlinesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List procedural deadlines for a case
+ */
+
+export function useListDeadlines<
+  TData = Awaited<ReturnType<typeof listDeadlines>>,
+  TError = ErrorType<unknown>,
+>(
+  caseId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listDeadlines>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListDeadlinesQueryOptions(caseId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Add a procedural deadline to a case
+ */
+export const getAddDeadlineUrl = (caseId: number) => {
+  return `/api/cases/${caseId}/deadlines`;
+};
+
+export const addDeadline = async (
+  caseId: number,
+  createDeadlineRequest: CreateDeadlineRequest,
+  options?: RequestInit,
+): Promise<Deadline> => {
+  return customFetch<Deadline>(getAddDeadlineUrl(caseId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createDeadlineRequest),
+  });
+};
+
+export const getAddDeadlineMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addDeadline>>,
+    TError,
+    { caseId: number; data: BodyType<CreateDeadlineRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addDeadline>>,
+  TError,
+  { caseId: number; data: BodyType<CreateDeadlineRequest> },
+  TContext
+> => {
+  const mutationKey = ["addDeadline"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addDeadline>>,
+    { caseId: number; data: BodyType<CreateDeadlineRequest> }
+  > = (props) => {
+    const { caseId, data } = props ?? {};
+
+    return addDeadline(caseId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddDeadlineMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addDeadline>>
+>;
+export type AddDeadlineMutationBody = BodyType<CreateDeadlineRequest>;
+export type AddDeadlineMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Add a procedural deadline to a case
+ */
+export const useAddDeadline = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addDeadline>>,
+    TError,
+    { caseId: number; data: BodyType<CreateDeadlineRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addDeadline>>,
+  TError,
+  { caseId: number; data: BodyType<CreateDeadlineRequest> },
+  TContext
+> => {
+  return useMutation(getAddDeadlineMutationOptions(options));
+};
+
+/**
+ * @summary Update a procedural deadline
+ */
+export const getUpdateDeadlineUrl = (caseId: number, deadlineId: number) => {
+  return `/api/cases/${caseId}/deadlines/${deadlineId}`;
+};
+
+export const updateDeadline = async (
+  caseId: number,
+  deadlineId: number,
+  createDeadlineRequest: CreateDeadlineRequest,
+  options?: RequestInit,
+): Promise<Deadline> => {
+  return customFetch<Deadline>(getUpdateDeadlineUrl(caseId, deadlineId), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createDeadlineRequest),
+  });
+};
+
+export const getUpdateDeadlineMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateDeadline>>,
+    TError,
+    {
+      caseId: number;
+      deadlineId: number;
+      data: BodyType<CreateDeadlineRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateDeadline>>,
+  TError,
+  { caseId: number; deadlineId: number; data: BodyType<CreateDeadlineRequest> },
+  TContext
+> => {
+  const mutationKey = ["updateDeadline"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateDeadline>>,
+    {
+      caseId: number;
+      deadlineId: number;
+      data: BodyType<CreateDeadlineRequest>;
+    }
+  > = (props) => {
+    const { caseId, deadlineId, data } = props ?? {};
+
+    return updateDeadline(caseId, deadlineId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateDeadlineMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateDeadline>>
+>;
+export type UpdateDeadlineMutationBody = BodyType<CreateDeadlineRequest>;
+export type UpdateDeadlineMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update a procedural deadline
+ */
+export const useUpdateDeadline = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateDeadline>>,
+    TError,
+    {
+      caseId: number;
+      deadlineId: number;
+      data: BodyType<CreateDeadlineRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateDeadline>>,
+  TError,
+  { caseId: number; deadlineId: number; data: BodyType<CreateDeadlineRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateDeadlineMutationOptions(options));
+};
+
+/**
+ * @summary Remove a procedural deadline
+ */
+export const getDeleteDeadlineUrl = (caseId: number, deadlineId: number) => {
+  return `/api/cases/${caseId}/deadlines/${deadlineId}`;
+};
+
+export const deleteDeadline = async (
+  caseId: number,
+  deadlineId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteDeadlineUrl(caseId, deadlineId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteDeadlineMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDeadline>>,
+    TError,
+    { caseId: number; deadlineId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteDeadline>>,
+  TError,
+  { caseId: number; deadlineId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteDeadline"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteDeadline>>,
+    { caseId: number; deadlineId: number }
+  > = (props) => {
+    const { caseId, deadlineId } = props ?? {};
+
+    return deleteDeadline(caseId, deadlineId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteDeadlineMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteDeadline>>
+>;
+
+export type DeleteDeadlineMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Remove a procedural deadline
+ */
+export const useDeleteDeadline = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDeadline>>,
+    TError,
+    { caseId: number; deadlineId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteDeadline>>,
+  TError,
+  { caseId: number; deadlineId: number },
+  TContext
+> => {
+  return useMutation(getDeleteDeadlineMutationOptions(options));
 };

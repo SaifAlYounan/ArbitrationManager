@@ -51,3 +51,22 @@ export const representativesTable = pgTable("representatives", {
 export const insertRepresentativeSchema = createInsertSchema(representativesTable).omit({ id: true, createdAt: true });
 export type InsertRepresentative = z.infer<typeof insertRepresentativeSchema>;
 export type Representative = typeof representativesTable.$inferSelect;
+
+export const deadlinesTable = pgTable("deadlines", {
+  id: serial("id").primaryKey(),
+  caseId: integer("case_id").notNull().references(() => casesTable.id, { onDelete: "cascade" }),
+  description: text("description").notNull(),
+  responsibleParty: text("responsible_party").notNull(),
+  dueDate: text("due_date").notNull(),
+  originalDueDate: text("original_due_date"),
+  status: text("status").notNull().default("Pending"),
+  proceduralOrderRef: text("procedural_order_ref"),
+  extensionOrderRef: text("extension_order_ref"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
+export const insertDeadlineSchema = createInsertSchema(deadlinesTable).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertDeadline = z.infer<typeof insertDeadlineSchema>;
+export type Deadline = typeof deadlinesTable.$inferSelect;

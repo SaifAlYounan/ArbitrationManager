@@ -15,6 +15,8 @@ tags:
     description: Tribunal member management
   - name: representatives
     description: Party representative management
+  - name: deadlines
+    description: Procedural deadline management
 paths:
   /healthz:
     get:
@@ -342,6 +344,116 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /cases/{caseId}/deadlines:
+    get:
+      operationId: listDeadlines
+      tags: [deadlines]
+      summary: List procedural deadlines for a case
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of deadlines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Deadline"
+    post:
+      operationId: addDeadline
+      tags: [deadlines]
+      summary: Add a procedural deadline to a case
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDeadlineRequest"
+      responses:
+        "201":
+          description: Deadline added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deadline"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/deadlines/{deadlineId}:
+    put:
+      operationId: updateDeadline
+      tags: [deadlines]
+      summary: Update a procedural deadline
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: deadlineId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDeadlineRequest"
+      responses:
+        "200":
+          description: Updated deadline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deadline"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteDeadline
+      tags: [deadlines]
+      summary: Remove a procedural deadline
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: deadlineId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -594,3 +706,94 @@ components:
         - party
         - email
         - timeZone
+
+    DeadlineStatus:
+      type: string
+      enum:
+        - Pending
+        - Completed
+        - Extended
+
+    DeadlineResponsibleParty:
+      type: string
+      enum:
+        - Claimant
+        - Respondent
+        - Tribunal
+        - All
+
+    Deadline:
+      type: object
+      properties:
+        id:
+          type: integer
+        caseId:
+          type: integer
+        description:
+          type: string
+        responsibleParty:
+          $ref: "#/components/schemas/DeadlineResponsibleParty"
+        dueDate:
+          type: string
+          format: date
+        originalDueDate:
+          type: string
+          format: date
+          nullable: true
+        status:
+          $ref: "#/components/schemas/DeadlineStatus"
+        proceduralOrderRef:
+          type: string
+          nullable: true
+        extensionOrderRef:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - caseId
+        - description
+        - responsibleParty
+        - dueDate
+        - status
+        - createdAt
+        - updatedAt
+
+    CreateDeadlineRequest:
+      type: object
+      properties:
+        description:
+          type: string
+        responsibleParty:
+          $ref: "#/components/schemas/DeadlineResponsibleParty"
+        dueDate:
+          type: string
+          format: date
+        originalDueDate:
+          type: string
+          format: date
+          nullable: true
+        status:
+          $ref: "#/components/schemas/DeadlineStatus"
+        proceduralOrderRef:
+          type: string
+          nullable: true
+        extensionOrderRef:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+      required:
+        - description
+        - responsibleParty
+        - dueDate
+        - status

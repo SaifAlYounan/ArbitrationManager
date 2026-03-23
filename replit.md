@@ -44,15 +44,26 @@ A professional web app for managing ICC international arbitration cases.
 
 - **Case List** (landing page): Card grid showing all cases with reference, name, parties, and status badge
 - **New Case Form** (`/cases/new`): Create cases with all procedural fields
-- **Case Dashboard** (`/cases/:id`): Three-tab dashboard — Case Details, Tribunal, Representatives
+- **Case Dashboard** (`/cases/:id`): Four-tab dashboard — Case Details, Tribunal, Representatives, Procedural Calendar
+
+### Procedural Calendar Tab
+
+- Tracks all procedural deadlines with description, responsible party (Claimant/Respondent/Tribunal/All), due date, status (Pending/Completed/Extended), PO reference, extension PO, and notes
+- Color coding: red = overdue, orange = due in ≤7 days, yellow = due in ≤14 days, green = future
+- Summary stat cards: Pending, Overdue, Completed counts
+- Timeline view (default) and Table view (sortable columns) toggle
+- "Add ICC Standard Deadlines" generates 8 standard ICC arbitration milestones (Answer to Request, CMC, Terms of Reference, memorials, hearing, etc.)
+- Add/Edit deadline modal with Extended status prompting an extension PO reference
+- One-click complete/reopen (CheckCircle2 toggle) and delete (with confirm)
 
 ### Database Schema
 
-Three PostgreSQL tables via Drizzle ORM:
+Four PostgreSQL tables via Drizzle ORM:
 
 - `cases` — core case fields (reference, name, parties, seat, language, rules, date, currency, status)
 - `tribunal_members` — arbitrators linked to a case (name, role, email, timezone)
 - `representatives` — party representatives linked to a case (name, firm, role, party, email, timezone)
+- `deadlines` — procedural deadlines linked to a case (description, responsible party, due date, original due date, status, PO refs, notes)
 
 ### API Endpoints (Express, prefixed at `/api`)
 
@@ -64,6 +75,12 @@ Three PostgreSQL tables via Drizzle ORM:
 - `PUT/DELETE /api/cases/:caseId/tribunal/:memberId`
 - `GET/POST /api/cases/:caseId/representatives` — manage representatives
 - `PUT/DELETE /api/cases/:caseId/representatives/:repId`
+- `GET/POST /api/cases/:caseId/deadlines` — manage procedural deadlines
+- `PUT/DELETE /api/cases/:caseId/deadlines/:deadlineId`
+
+### Important Notes
+
+- Date fields in DB are stored as `text` (ISO string format), but Zod-generated schemas use `zod.date()`. Routes use `coerceDates()` helpers to convert string→Date for Zod validation, then `flattenBody()` helpers to convert Date→string for DB insertion. Response `.parse()` calls are removed from all routes to avoid re-validation of outbound data.
 
 ## TypeScript & Composite Projects
 

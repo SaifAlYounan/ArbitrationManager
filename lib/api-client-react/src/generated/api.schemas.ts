@@ -128,3 +128,48 @@ export interface CreateRepresentativeRequest {
   email: string;
   timeZone: string;
 }
+
+export type DeadlineStatus =
+  (typeof DeadlineStatus)[keyof typeof DeadlineStatus];
+
+export const DeadlineStatus = {
+  Pending: "Pending",
+  Completed: "Completed",
+  Extended: "Extended",
+} as const;
+
+export type DeadlineResponsibleParty =
+  (typeof DeadlineResponsibleParty)[keyof typeof DeadlineResponsibleParty];
+
+export const DeadlineResponsibleParty = {
+  Claimant: "Claimant",
+  Respondent: "Respondent",
+  Tribunal: "Tribunal",
+  All: "All",
+} as const;
+
+export interface Deadline {
+  id: number;
+  caseId: number;
+  description: string;
+  responsibleParty: DeadlineResponsibleParty;
+  dueDate: string;
+  originalDueDate?: string | null;
+  status: DeadlineStatus;
+  proceduralOrderRef?: string | null;
+  extensionOrderRef?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateDeadlineRequest {
+  description: string;
+  responsibleParty: DeadlineResponsibleParty;
+  dueDate: string;
+  originalDueDate?: string | null;
+  status: DeadlineStatus;
+  proceduralOrderRef?: string | null;
+  extensionOrderRef?: string | null;
+  notes?: string | null;
+}
