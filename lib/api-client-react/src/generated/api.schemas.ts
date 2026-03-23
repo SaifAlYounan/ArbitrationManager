@@ -163,6 +163,36 @@ export interface Deadline {
   updatedAt: string;
 }
 
+export interface ProceduralOrder {
+  id: number;
+  caseId: number;
+  poNumber: string;
+  dateIssued: string;
+  summary: string;
+  draftContent?: string | null;
+  formattedContent?: string | null;
+  isFinalized: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateProceduralOrderRequest {
+  dateIssued: string;
+  summary: string;
+  draftContent?: string | null;
+  formattedContent?: string | null;
+  isFinalized: boolean;
+}
+
+export interface DeadlineUpdate {
+  deadlineId: number;
+  newDueDate: string;
+}
+
+export interface ApplyPoToDeadlinesRequest {
+  updates: DeadlineUpdate[];
+}
+
 export interface CreateDeadlineRequest {
   description: string;
   responsibleParty: DeadlineResponsibleParty;

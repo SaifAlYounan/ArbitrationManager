@@ -17,15 +17,18 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  ApplyPoToDeadlinesRequest,
   Case,
   CaseDetail,
   CreateCaseRequest,
   CreateDeadlineRequest,
+  CreateProceduralOrderRequest,
   CreateRepresentativeRequest,
   CreateTribunalMemberRequest,
   Deadline,
   ErrorResponse,
   HealthStatus,
+  ProceduralOrder,
   Representative,
   TribunalMember,
 } from "./api.schemas";
@@ -1182,6 +1185,469 @@ export const useDeleteRepresentative = <
   TContext
 > => {
   return useMutation(getDeleteRepresentativeMutationOptions(options));
+};
+
+/**
+ * @summary List all procedural orders for a case
+ */
+export const getListProceduralOrdersUrl = (caseId: number) => {
+  return `/api/cases/${caseId}/procedural-orders`;
+};
+
+export const listProceduralOrders = async (
+  caseId: number,
+  options?: RequestInit,
+): Promise<ProceduralOrder[]> => {
+  return customFetch<ProceduralOrder[]>(getListProceduralOrdersUrl(caseId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListProceduralOrdersQueryKey = (caseId: number) => {
+  return [`/api/cases/${caseId}/procedural-orders`] as const;
+};
+
+export const getListProceduralOrdersQueryOptions = <
+  TData = Awaited<ReturnType<typeof listProceduralOrders>>,
+  TError = ErrorType<unknown>,
+>(
+  caseId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listProceduralOrders>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListProceduralOrdersQueryKey(caseId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listProceduralOrders>>
+  > = ({ signal }) =>
+    listProceduralOrders(caseId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!caseId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listProceduralOrders>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListProceduralOrdersQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listProceduralOrders>>
+>;
+export type ListProceduralOrdersQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all procedural orders for a case
+ */
+
+export function useListProceduralOrders<
+  TData = Awaited<ReturnType<typeof listProceduralOrders>>,
+  TError = ErrorType<unknown>,
+>(
+  caseId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listProceduralOrders>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListProceduralOrdersQueryOptions(caseId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Add a procedural order to a case
+ */
+export const getAddProceduralOrderUrl = (caseId: number) => {
+  return `/api/cases/${caseId}/procedural-orders`;
+};
+
+export const addProceduralOrder = async (
+  caseId: number,
+  createProceduralOrderRequest: CreateProceduralOrderRequest,
+  options?: RequestInit,
+): Promise<ProceduralOrder> => {
+  return customFetch<ProceduralOrder>(getAddProceduralOrderUrl(caseId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createProceduralOrderRequest),
+  });
+};
+
+export const getAddProceduralOrderMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addProceduralOrder>>,
+    TError,
+    { caseId: number; data: BodyType<CreateProceduralOrderRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addProceduralOrder>>,
+  TError,
+  { caseId: number; data: BodyType<CreateProceduralOrderRequest> },
+  TContext
+> => {
+  const mutationKey = ["addProceduralOrder"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addProceduralOrder>>,
+    { caseId: number; data: BodyType<CreateProceduralOrderRequest> }
+  > = (props) => {
+    const { caseId, data } = props ?? {};
+
+    return addProceduralOrder(caseId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddProceduralOrderMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addProceduralOrder>>
+>;
+export type AddProceduralOrderMutationBody =
+  BodyType<CreateProceduralOrderRequest>;
+export type AddProceduralOrderMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Add a procedural order to a case
+ */
+export const useAddProceduralOrder = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addProceduralOrder>>,
+    TError,
+    { caseId: number; data: BodyType<CreateProceduralOrderRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addProceduralOrder>>,
+  TError,
+  { caseId: number; data: BodyType<CreateProceduralOrderRequest> },
+  TContext
+> => {
+  return useMutation(getAddProceduralOrderMutationOptions(options));
+};
+
+/**
+ * @summary Update a procedural order
+ */
+export const getUpdateProceduralOrderUrl = (caseId: number, poId: number) => {
+  return `/api/cases/${caseId}/procedural-orders/${poId}`;
+};
+
+export const updateProceduralOrder = async (
+  caseId: number,
+  poId: number,
+  createProceduralOrderRequest: CreateProceduralOrderRequest,
+  options?: RequestInit,
+): Promise<ProceduralOrder> => {
+  return customFetch<ProceduralOrder>(
+    getUpdateProceduralOrderUrl(caseId, poId),
+    {
+      ...options,
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(createProceduralOrderRequest),
+    },
+  );
+};
+
+export const getUpdateProceduralOrderMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateProceduralOrder>>,
+    TError,
+    {
+      caseId: number;
+      poId: number;
+      data: BodyType<CreateProceduralOrderRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateProceduralOrder>>,
+  TError,
+  {
+    caseId: number;
+    poId: number;
+    data: BodyType<CreateProceduralOrderRequest>;
+  },
+  TContext
+> => {
+  const mutationKey = ["updateProceduralOrder"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateProceduralOrder>>,
+    {
+      caseId: number;
+      poId: number;
+      data: BodyType<CreateProceduralOrderRequest>;
+    }
+  > = (props) => {
+    const { caseId, poId, data } = props ?? {};
+
+    return updateProceduralOrder(caseId, poId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateProceduralOrderMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateProceduralOrder>>
+>;
+export type UpdateProceduralOrderMutationBody =
+  BodyType<CreateProceduralOrderRequest>;
+export type UpdateProceduralOrderMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update a procedural order
+ */
+export const useUpdateProceduralOrder = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateProceduralOrder>>,
+    TError,
+    {
+      caseId: number;
+      poId: number;
+      data: BodyType<CreateProceduralOrderRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateProceduralOrder>>,
+  TError,
+  {
+    caseId: number;
+    poId: number;
+    data: BodyType<CreateProceduralOrderRequest>;
+  },
+  TContext
+> => {
+  return useMutation(getUpdateProceduralOrderMutationOptions(options));
+};
+
+/**
+ * @summary Delete a procedural order
+ */
+export const getDeleteProceduralOrderUrl = (caseId: number, poId: number) => {
+  return `/api/cases/${caseId}/procedural-orders/${poId}`;
+};
+
+export const deleteProceduralOrder = async (
+  caseId: number,
+  poId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteProceduralOrderUrl(caseId, poId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteProceduralOrderMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteProceduralOrder>>,
+    TError,
+    { caseId: number; poId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteProceduralOrder>>,
+  TError,
+  { caseId: number; poId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteProceduralOrder"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteProceduralOrder>>,
+    { caseId: number; poId: number }
+  > = (props) => {
+    const { caseId, poId } = props ?? {};
+
+    return deleteProceduralOrder(caseId, poId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteProceduralOrderMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteProceduralOrder>>
+>;
+
+export type DeleteProceduralOrderMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Delete a procedural order
+ */
+export const useDeleteProceduralOrder = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteProceduralOrder>>,
+    TError,
+    { caseId: number; poId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteProceduralOrder>>,
+  TError,
+  { caseId: number; poId: number },
+  TContext
+> => {
+  return useMutation(getDeleteProceduralOrderMutationOptions(options));
+};
+
+/**
+ * @summary Apply a procedural order's changes to selected deadlines
+ */
+export const getApplyPoToDeadlinesUrl = (caseId: number, poId: number) => {
+  return `/api/cases/${caseId}/procedural-orders/${poId}/apply-to-deadlines`;
+};
+
+export const applyPoToDeadlines = async (
+  caseId: number,
+  poId: number,
+  applyPoToDeadlinesRequest: ApplyPoToDeadlinesRequest,
+  options?: RequestInit,
+): Promise<Deadline[]> => {
+  return customFetch<Deadline[]>(getApplyPoToDeadlinesUrl(caseId, poId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(applyPoToDeadlinesRequest),
+  });
+};
+
+export const getApplyPoToDeadlinesMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof applyPoToDeadlines>>,
+    TError,
+    { caseId: number; poId: number; data: BodyType<ApplyPoToDeadlinesRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof applyPoToDeadlines>>,
+  TError,
+  { caseId: number; poId: number; data: BodyType<ApplyPoToDeadlinesRequest> },
+  TContext
+> => {
+  const mutationKey = ["applyPoToDeadlines"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof applyPoToDeadlines>>,
+    { caseId: number; poId: number; data: BodyType<ApplyPoToDeadlinesRequest> }
+  > = (props) => {
+    const { caseId, poId, data } = props ?? {};
+
+    return applyPoToDeadlines(caseId, poId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ApplyPoToDeadlinesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof applyPoToDeadlines>>
+>;
+export type ApplyPoToDeadlinesMutationBody =
+  BodyType<ApplyPoToDeadlinesRequest>;
+export type ApplyPoToDeadlinesMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Apply a procedural order's changes to selected deadlines
+ */
+export const useApplyPoToDeadlines = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof applyPoToDeadlines>>,
+    TError,
+    { caseId: number; poId: number; data: BodyType<ApplyPoToDeadlinesRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof applyPoToDeadlines>>,
+  TError,
+  { caseId: number; poId: number; data: BodyType<ApplyPoToDeadlinesRequest> },
+  TContext
+> => {
+  return useMutation(getApplyPoToDeadlinesMutationOptions(options));
 };
 
 /**

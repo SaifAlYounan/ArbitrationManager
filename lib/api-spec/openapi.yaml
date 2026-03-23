@@ -344,6 +344,154 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /cases/{caseId}/procedural-orders:
+    get:
+      operationId: listProceduralOrders
+      tags: [procedural-orders]
+      summary: List all procedural orders for a case
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of procedural orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProceduralOrder"
+    post:
+      operationId: addProceduralOrder
+      tags: [procedural-orders]
+      summary: Add a procedural order to a case
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProceduralOrderRequest"
+      responses:
+        "201":
+          description: Procedural order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProceduralOrder"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/procedural-orders/{poId}:
+    put:
+      operationId: updateProceduralOrder
+      tags: [procedural-orders]
+      summary: Update a procedural order
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: poId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProceduralOrderRequest"
+      responses:
+        "200":
+          description: Updated procedural order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProceduralOrder"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteProceduralOrder
+      tags: [procedural-orders]
+      summary: Delete a procedural order
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: poId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/procedural-orders/{poId}/apply-to-deadlines:
+    post:
+      operationId: applyPoToDeadlines
+      tags: [procedural-orders]
+      summary: Apply a procedural order's changes to selected deadlines
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: poId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplyPoToDeadlinesRequest"
+      responses:
+        "200":
+          description: Updated deadlines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Deadline"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /cases/{caseId}/deadlines:
     get:
       operationId: listDeadlines
@@ -766,6 +914,87 @@ components:
         - status
         - createdAt
         - updatedAt
+
+    ProceduralOrder:
+      type: object
+      properties:
+        id:
+          type: integer
+        caseId:
+          type: integer
+        poNumber:
+          type: string
+        dateIssued:
+          type: string
+          format: date
+        summary:
+          type: string
+        draftContent:
+          type: string
+          nullable: true
+        formattedContent:
+          type: string
+          nullable: true
+        isFinalized:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - caseId
+        - poNumber
+        - dateIssued
+        - summary
+        - isFinalized
+        - createdAt
+        - updatedAt
+
+    CreateProceduralOrderRequest:
+      type: object
+      properties:
+        dateIssued:
+          type: string
+          format: date
+        summary:
+          type: string
+        draftContent:
+          type: string
+          nullable: true
+        formattedContent:
+          type: string
+          nullable: true
+        isFinalized:
+          type: boolean
+      required:
+        - dateIssued
+        - summary
+        - isFinalized
+
+    DeadlineUpdate:
+      type: object
+      properties:
+        deadlineId:
+          type: integer
+        newDueDate:
+          type: string
+          format: date
+      required:
+        - deadlineId
+        - newDueDate
+
+    ApplyPoToDeadlinesRequest:
+      type: object
+      properties:
+        updates:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeadlineUpdate"
+      required:
+        - updates
 
     CreateDeadlineRequest:
       type: object

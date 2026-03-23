@@ -5,6 +5,7 @@ import {
   Calendar, DollarSign, Book, Scale, Building2, UserCircle 
 } from "lucide-react";
 import ProceduralCalendar from "@/components/ProceduralCalendar";
+import ProceduralOrders from "@/components/ProceduralOrders";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { cn, formatDate } from "@/lib/utils";
@@ -224,7 +225,7 @@ export default function CaseDashboard({ params }: { params: { id: string } }) {
   const caseId = parseInt(params.id, 10);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"details" | "tribunal" | "reps" | "calendar">("details");
+  const [activeTab, setActiveTab] = useState<"details" | "tribunal" | "reps" | "calendar" | "orders">("details");
   
   // Modals state
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -289,6 +290,7 @@ export default function CaseDashboard({ params }: { params: { id: string } }) {
     { id: "details", label: "Case Details" },
     { id: "tribunal", label: `Tribunal (${caseData.tribunalMembers.length})` },
     { id: "reps", label: `Representatives (${caseData.representatives.length})` },
+    { id: "orders", label: "Procedural Orders" },
     { id: "calendar", label: "Procedural Calendar" },
   ] as const;
 
@@ -502,6 +504,16 @@ export default function CaseDashboard({ params }: { params: { id: string } }) {
                 </div>
               </div>
 
+            </motion.div>
+          )}
+
+          {/* Procedural Orders Tab */}
+          {activeTab === "orders" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <ProceduralOrders
+                caseId={caseId}
+                caseRef={caseData.caseReference}
+              />
             </motion.div>
           )}
 

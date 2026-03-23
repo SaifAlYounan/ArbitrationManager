@@ -7,18 +7,22 @@
  */
 
 export * from "./applicableRules";
+export * from "./applyPoToDeadlinesRequest";
 export * from "./case";
 export * from "./caseDetail";
 export * from "./caseStatus";
 export * from "./createCaseRequest";
 export * from "./createDeadlineRequest";
+export * from "./createProceduralOrderRequest";
 export * from "./createRepresentativeRequest";
 export * from "./createTribunalMemberRequest";
 export * from "./deadline";
 export * from "./deadlineResponsibleParty";
 export * from "./deadlineStatus";
+export * from "./deadlineUpdate";
 export * from "./errorResponse";
 export * from "./healthStatus";
+export * from "./proceduralOrder";
 export * from "./representative";
 export * from "./representativeParty";
 export * from "./representativeRole";

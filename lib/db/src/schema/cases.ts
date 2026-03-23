@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -70,3 +70,20 @@ export const deadlinesTable = pgTable("deadlines", {
 export const insertDeadlineSchema = createInsertSchema(deadlinesTable).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertDeadline = z.infer<typeof insertDeadlineSchema>;
 export type Deadline = typeof deadlinesTable.$inferSelect;
+
+export const proceduralOrdersTable = pgTable("procedural_orders", {
+  id: serial("id").primaryKey(),
+  caseId: integer("case_id").notNull().references(() => casesTable.id, { onDelete: "cascade" }),
+  poNumber: text("po_number").notNull(),
+  dateIssued: text("date_issued").notNull(),
+  summary: text("summary").notNull(),
+  draftContent: text("draft_content"),
+  formattedContent: text("formatted_content"),
+  isFinalized: boolean("is_finalized").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
+export const insertProceduralOrderSchema = createInsertSchema(proceduralOrdersTable).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertProceduralOrder = z.infer<typeof insertProceduralOrderSchema>;
+export type ProceduralOrder = typeof proceduralOrdersTable.$inferSelect;

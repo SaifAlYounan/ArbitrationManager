@@ -44,7 +44,16 @@ A professional web app for managing ICC international arbitration cases.
 
 - **Case List** (landing page): Card grid showing all cases with reference, name, parties, and status badge
 - **New Case Form** (`/cases/new`): Create cases with all procedural fields
-- **Case Dashboard** (`/cases/:id`): Four-tab dashboard — Case Details, Tribunal, Representatives, Procedural Calendar
+- **Case Dashboard** (`/cases/:id`): Five-tab dashboard — Case Details, Tribunal, Representatives, Procedural Orders, Procedural Calendar
+
+### Procedural Orders Tab
+
+- Auto-sequential PO numbering (PO1, PO2, ...) based on existing count
+- Summary stat cards: Total Orders, Last Issued date, Not Yet Finalized (amber alert)
+- Per-PO card showing PO number badge, issue date, key directions summary, finalized/draft status
+- **Draft PO feature**: paste raw tribunal directions line-by-line → auto-formatted preview with numbered paragraphs, "IT IS HEREBY ORDERED" header, and tribunal signature block
+- **Apply to Deadlines** workflow: after issuing a PO, prompted to select which existing deadlines are modified; sets new dates, marks them "Extended per [PO number]", preserves original dates
+- Edit and delete POs; Update Deadlines action available on each card
 
 ### Procedural Calendar Tab
 

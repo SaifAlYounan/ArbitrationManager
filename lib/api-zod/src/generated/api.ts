@@ -307,6 +307,116 @@ export const DeleteRepresentativeParams = zod.object({
 });
 
 /**
+ * @summary List all procedural orders for a case
+ */
+export const ListProceduralOrdersParams = zod.object({
+  caseId: zod.coerce.number(),
+});
+
+export const ListProceduralOrdersResponseItem = zod.object({
+  id: zod.number(),
+  caseId: zod.number(),
+  poNumber: zod.string(),
+  dateIssued: zod.date(),
+  summary: zod.string(),
+  draftContent: zod.string().nullish(),
+  formattedContent: zod.string().nullish(),
+  isFinalized: zod.boolean(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+export const ListProceduralOrdersResponse = zod.array(
+  ListProceduralOrdersResponseItem,
+);
+
+/**
+ * @summary Add a procedural order to a case
+ */
+export const AddProceduralOrderParams = zod.object({
+  caseId: zod.coerce.number(),
+});
+
+export const AddProceduralOrderBody = zod.object({
+  dateIssued: zod.date(),
+  summary: zod.string(),
+  draftContent: zod.string().nullish(),
+  formattedContent: zod.string().nullish(),
+  isFinalized: zod.boolean(),
+});
+
+/**
+ * @summary Update a procedural order
+ */
+export const UpdateProceduralOrderParams = zod.object({
+  caseId: zod.coerce.number(),
+  poId: zod.coerce.number(),
+});
+
+export const UpdateProceduralOrderBody = zod.object({
+  dateIssued: zod.date(),
+  summary: zod.string(),
+  draftContent: zod.string().nullish(),
+  formattedContent: zod.string().nullish(),
+  isFinalized: zod.boolean(),
+});
+
+export const UpdateProceduralOrderResponse = zod.object({
+  id: zod.number(),
+  caseId: zod.number(),
+  poNumber: zod.string(),
+  dateIssued: zod.date(),
+  summary: zod.string(),
+  draftContent: zod.string().nullish(),
+  formattedContent: zod.string().nullish(),
+  isFinalized: zod.boolean(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+
+/**
+ * @summary Delete a procedural order
+ */
+export const DeleteProceduralOrderParams = zod.object({
+  caseId: zod.coerce.number(),
+  poId: zod.coerce.number(),
+});
+
+/**
+ * @summary Apply a procedural order's changes to selected deadlines
+ */
+export const ApplyPoToDeadlinesParams = zod.object({
+  caseId: zod.coerce.number(),
+  poId: zod.coerce.number(),
+});
+
+export const ApplyPoToDeadlinesBody = zod.object({
+  updates: zod.array(
+    zod.object({
+      deadlineId: zod.number(),
+      newDueDate: zod.date(),
+    }),
+  ),
+});
+
+export const ApplyPoToDeadlinesResponseItem = zod.object({
+  id: zod.number(),
+  caseId: zod.number(),
+  description: zod.string(),
+  responsibleParty: zod.enum(["Claimant", "Respondent", "Tribunal", "All"]),
+  dueDate: zod.date(),
+  originalDueDate: zod.date().nullish(),
+  status: zod.enum(["Pending", "Completed", "Extended"]),
+  proceduralOrderRef: zod.string().nullish(),
+  extensionOrderRef: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+export const ApplyPoToDeadlinesResponse = zod.array(
+  ApplyPoToDeadlinesResponseItem,
+);
+
+/**
  * @summary List procedural deadlines for a case
  */
 export const ListDeadlinesParams = zod.object({
