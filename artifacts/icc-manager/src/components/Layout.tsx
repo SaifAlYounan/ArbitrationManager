@@ -12,7 +12,7 @@ export default function Layout({ children, noPadding }: { children: React.ReactN
               <Scale className="h-5 w-5" />
             </div>
             <span className="font-display text-xl font-bold text-foreground tracking-tight">
-              ICC Procedural Manager
+              Procedural Manager
             </span>
           </Link>
           

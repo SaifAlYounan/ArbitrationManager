@@ -23,7 +23,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 artifacts-monorepo/
 ├── artifacts/              # Deployable applications
 │   ├── api-server/         # Express API server
-│   └── icc-manager/        # ICC Procedural Manager (React + Vite frontend)
+│   └── icc-manager/        # Procedural Manager (React + Vite frontend)
 ├── lib/                    # Shared libraries
 │   ├── api-spec/           # OpenAPI spec + Orval codegen config
 │   ├── api-client-react/   # Generated React Query hooks
@@ -36,7 +36,7 @@ artifacts-monorepo/
 └── package.json            # Root package with hoisted devDeps
 ```
 
-## ICC Procedural Manager
+## Procedural Manager
 
 A professional web app for managing ICC international arbitration cases.
 

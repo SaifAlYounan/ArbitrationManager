@@ -1312,7 +1312,7 @@ ${disbRows}
 
 ${rateCardTable}
 
-<p style="margin-top:40px;font-size:11px;color:#999;border-top:1px solid #eee;padding-top:12px;">This costs statement is generated from the ICC Procedural Manager system. All figures are in the currency stated next to each amount. Where multiple currencies are used, amounts may not be directly comparable without conversion.</p>
+<p style="margin-top:40px;font-size:11px;color:#999;border-top:1px solid #eee;padding-top:12px;">This costs statement is generated from the Procedural Manager system. All figures are in the currency stated next to each amount. Where multiple currencies are used, amounts may not be directly comparable without conversion.</p>
 </body>
 </html>`;
 

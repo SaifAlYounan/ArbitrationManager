@@ -74,7 +74,7 @@ export default function Landing() {
             <div className="w-9 h-9 rounded-lg bg-[#0F2547] flex items-center justify-center">
               <Scale className="w-5 h-5 text-white" />
             </div>
-            <span className="font-display font-bold text-[#0F2547] text-lg tracking-tight">ICC Procedural Manager</span>
+            <span className="font-display font-bold text-[#0F2547] text-lg tracking-tight">Procedural Manager</span>
           </div>
           <Link href="/app">
             <motion.button
@@ -259,7 +259,7 @@ export default function Landing() {
               whileTap={{ scale: 0.97 }}
               className="inline-flex items-center gap-2 px-8 py-4 bg-white text-[#0F2547] font-semibold text-base rounded-xl hover:bg-blue-50 transition-colors shadow-xl"
             >
-              Open ICC Procedural Manager
+              Open Procedural Manager
               <ArrowRight className="w-4 h-4" />
             </motion.button>
           </Link>
@@ -270,7 +270,7 @@ export default function Landing() {
       <footer className="bg-[#0a1a38] text-blue-300/60 text-xs text-center py-6 px-6">
         <div className="flex items-center justify-center gap-2 mb-1">
           <Scale className="w-3.5 h-3.5" />
-          <span className="font-medium text-blue-200/80">ICC Procedural Manager</span>
+          <span className="font-medium text-blue-200/80">Procedural Manager</span>
         </div>
         <p>Internal case management tool · Aligned with ICC Arbitration Rules 2021</p>
       </footer>

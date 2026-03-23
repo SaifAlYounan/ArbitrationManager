@@ -133,7 +133,7 @@ export default function CaseDashboard({ params }: { params: { id: string } }) {
 
         {/* Footer */}
         <div className="p-3 border-t border-white/10 flex-shrink-0">
-          <p className="text-xs text-white/30 text-center">ICC Procedural Manager</p>
+          <p className="text-xs text-white/30 text-center">Procedural Manager</p>
         </div>
       </aside>
 
