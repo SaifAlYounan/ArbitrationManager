@@ -163,6 +163,134 @@ export interface Deadline {
   updatedAt: string;
 }
 
+export type HearingType = (typeof HearingType)[keyof typeof HearingType];
+
+export const HearingType = {
+  Merits: "Merits",
+  Jurisdiction: "Jurisdiction",
+  Quantum: "Quantum",
+  Procedural: "Procedural",
+} as const;
+
+export type HearingPlatform =
+  (typeof HearingPlatform)[keyof typeof HearingPlatform];
+
+export const HearingPlatform = {
+  Zoom: "Zoom",
+  Teams: "Teams",
+  Arbitration_Place: "Arbitration Place",
+  Other: "Other",
+} as const;
+
+export type AttendanceMode =
+  (typeof AttendanceMode)[keyof typeof AttendanceMode];
+
+export const AttendanceMode = {
+  In_Person: "In Person",
+  Remote: "Remote",
+} as const;
+
+export type WitnessRoleType =
+  (typeof WitnessRoleType)[keyof typeof WitnessRoleType];
+
+export const WitnessRoleType = {
+  Witness: "Witness",
+  Expert: "Expert",
+} as const;
+
+export interface Hearing {
+  id: number;
+  caseId: number;
+  hearingType: HearingType;
+  startDate: string;
+  endDate: string;
+  location: string;
+  isVirtual: boolean;
+  platform?: string | null;
+  startTime: string;
+  endTime: string;
+  timezoneOfRecord: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateHearingRequest {
+  hearingType: HearingType;
+  startDate: string;
+  endDate: string;
+  location: string;
+  isVirtual: boolean;
+  platform?: string | null;
+  startTime: string;
+  endTime: string;
+  timezoneOfRecord: string;
+}
+
+export interface HearingParticipant {
+  id: number;
+  hearingId: number;
+  name: string;
+  role: string;
+  timezone: string;
+  attendance: AttendanceMode;
+  attendingDays: string;
+  createdAt: string;
+}
+
+export interface CreateParticipantRequest {
+  name: string;
+  role: string;
+  timezone: string;
+  attendance: AttendanceMode;
+  attendingDays: string;
+}
+
+export interface WitnessScheduleEntry {
+  id: number;
+  hearingId: number;
+  witnessName: string;
+  witnessRole: WitnessRoleType;
+  hearingDay: string;
+  chiefExamMins: number;
+  crossExamMins: number;
+  examiningCounsel?: string | null;
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface CreateWitnessScheduleRequest {
+  witnessName: string;
+  witnessRole: WitnessRoleType;
+  hearingDay: string;
+  chiefExamMins: number;
+  crossExamMins: number;
+  examiningCounsel?: string | null;
+  notes?: string | null;
+}
+
+export interface HearingChecklistItem {
+  id: number;
+  hearingId: number;
+  label: string;
+  isDone: boolean;
+  doneDate?: string | null;
+  notes?: string | null;
+  isCustom: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface CreateChecklistItemRequest {
+  label: string;
+}
+
+export interface UpdateChecklistItemRequest {
+  isDone: boolean;
+  doneDate?: string | null;
+  notes?: string | null;
+  label?: string;
+}
+
 export interface ProceduralOrder {
   id: number;
   caseId: number;

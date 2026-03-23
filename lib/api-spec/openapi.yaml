@@ -344,6 +344,440 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /cases/{caseId}/hearings:
+    get:
+      operationId: listHearings
+      tags: [hearings]
+      summary: List hearings for a case
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of hearings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Hearing"
+    post:
+      operationId: addHearing
+      tags: [hearings]
+      summary: Add a hearing to a case
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHearingRequest"
+      responses:
+        "201":
+          description: Hearing created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Hearing"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/hearings/{hearingId}:
+    put:
+      operationId: updateHearing
+      tags: [hearings]
+      summary: Update a hearing
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: hearingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHearingRequest"
+      responses:
+        "200":
+          description: Updated hearing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Hearing"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteHearing
+      tags: [hearings]
+      summary: Delete a hearing
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: hearingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /hearings/{hearingId}/participants:
+    get:
+      operationId: listParticipants
+      tags: [hearings]
+      summary: List participants for a hearing
+      parameters:
+        - name: hearingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of participants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HearingParticipant"
+    post:
+      operationId: addParticipant
+      tags: [hearings]
+      summary: Add a participant to a hearing
+      parameters:
+        - name: hearingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateParticipantRequest"
+      responses:
+        "201":
+          description: Participant added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HearingParticipant"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /hearings/{hearingId}/participants/{participantId}:
+    put:
+      operationId: updateParticipant
+      tags: [hearings]
+      summary: Update a hearing participant
+      parameters:
+        - name: hearingId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: participantId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateParticipantRequest"
+      responses:
+        "200":
+          description: Updated participant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HearingParticipant"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteParticipant
+      tags: [hearings]
+      summary: Remove a participant from a hearing
+      parameters:
+        - name: hearingId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: participantId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /hearings/{hearingId}/witness-schedule:
+    get:
+      operationId: listWitnessSchedule
+      tags: [hearings]
+      summary: List witness/expert schedule entries for a hearing
+      parameters:
+        - name: hearingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of witness schedule entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WitnessScheduleEntry"
+    post:
+      operationId: addWitnessScheduleEntry
+      tags: [hearings]
+      summary: Add a witness/expert to the schedule
+      parameters:
+        - name: hearingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWitnessScheduleRequest"
+      responses:
+        "201":
+          description: Schedule entry added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WitnessScheduleEntry"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /hearings/{hearingId}/witness-schedule/{entryId}:
+    put:
+      operationId: updateWitnessScheduleEntry
+      tags: [hearings]
+      summary: Update a witness schedule entry
+      parameters:
+        - name: hearingId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: entryId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWitnessScheduleRequest"
+      responses:
+        "200":
+          description: Updated entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WitnessScheduleEntry"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteWitnessScheduleEntry
+      tags: [hearings]
+      summary: Delete a witness schedule entry
+      parameters:
+        - name: hearingId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: entryId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /hearings/{hearingId}/checklist:
+    get:
+      operationId: listChecklistItems
+      tags: [hearings]
+      summary: List preparation checklist items for a hearing
+      parameters:
+        - name: hearingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of checklist items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HearingChecklistItem"
+    post:
+      operationId: addChecklistItem
+      tags: [hearings]
+      summary: Add a custom checklist item
+      parameters:
+        - name: hearingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateChecklistItemRequest"
+      responses:
+        "201":
+          description: Checklist item added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HearingChecklistItem"
+
+  /hearings/{hearingId}/checklist/{itemId}:
+    put:
+      operationId: updateChecklistItem
+      tags: [hearings]
+      summary: Update a checklist item (toggle done/undone, add notes)
+      parameters:
+        - name: hearingId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateChecklistItemRequest"
+      responses:
+        "200":
+          description: Updated checklist item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HearingChecklistItem"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteChecklistItem
+      tags: [hearings]
+      summary: Delete a custom checklist item
+      parameters:
+        - name: hearingId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /cases/{caseId}/procedural-orders:
     get:
       operationId: listProceduralOrders
@@ -914,6 +1348,287 @@ components:
         - status
         - createdAt
         - updatedAt
+
+    HearingType:
+      type: string
+      enum:
+        - Merits
+        - Jurisdiction
+        - Quantum
+        - Procedural
+
+    HearingPlatform:
+      type: string
+      enum:
+        - Zoom
+        - Teams
+        - Arbitration Place
+        - Other
+
+    AttendanceMode:
+      type: string
+      enum:
+        - In Person
+        - Remote
+
+    WitnessRoleType:
+      type: string
+      enum:
+        - Witness
+        - Expert
+
+    Hearing:
+      type: object
+      properties:
+        id:
+          type: integer
+        caseId:
+          type: integer
+        hearingType:
+          $ref: "#/components/schemas/HearingType"
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        location:
+          type: string
+        isVirtual:
+          type: boolean
+        platform:
+          type: string
+          nullable: true
+        startTime:
+          type: string
+        endTime:
+          type: string
+        timezoneOfRecord:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - caseId
+        - hearingType
+        - startDate
+        - endDate
+        - location
+        - isVirtual
+        - startTime
+        - endTime
+        - timezoneOfRecord
+        - createdAt
+        - updatedAt
+
+    CreateHearingRequest:
+      type: object
+      properties:
+        hearingType:
+          $ref: "#/components/schemas/HearingType"
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        location:
+          type: string
+        isVirtual:
+          type: boolean
+        platform:
+          type: string
+          nullable: true
+        startTime:
+          type: string
+        endTime:
+          type: string
+        timezoneOfRecord:
+          type: string
+      required:
+        - hearingType
+        - startDate
+        - endDate
+        - location
+        - isVirtual
+        - startTime
+        - endTime
+        - timezoneOfRecord
+
+    HearingParticipant:
+      type: object
+      properties:
+        id:
+          type: integer
+        hearingId:
+          type: integer
+        name:
+          type: string
+        role:
+          type: string
+        timezone:
+          type: string
+        attendance:
+          $ref: "#/components/schemas/AttendanceMode"
+        attendingDays:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - hearingId
+        - name
+        - role
+        - timezone
+        - attendance
+        - attendingDays
+        - createdAt
+
+    CreateParticipantRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+        timezone:
+          type: string
+        attendance:
+          $ref: "#/components/schemas/AttendanceMode"
+        attendingDays:
+          type: string
+      required:
+        - name
+        - role
+        - timezone
+        - attendance
+        - attendingDays
+
+    WitnessScheduleEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        hearingId:
+          type: integer
+        witnessName:
+          type: string
+        witnessRole:
+          $ref: "#/components/schemas/WitnessRoleType"
+        hearingDay:
+          type: string
+          format: date
+        chiefExamMins:
+          type: integer
+        crossExamMins:
+          type: integer
+        examiningCounsel:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - hearingId
+        - witnessName
+        - witnessRole
+        - hearingDay
+        - chiefExamMins
+        - crossExamMins
+        - createdAt
+
+    CreateWitnessScheduleRequest:
+      type: object
+      properties:
+        witnessName:
+          type: string
+        witnessRole:
+          $ref: "#/components/schemas/WitnessRoleType"
+        hearingDay:
+          type: string
+          format: date
+        chiefExamMins:
+          type: integer
+        crossExamMins:
+          type: integer
+        examiningCounsel:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+      required:
+        - witnessName
+        - witnessRole
+        - hearingDay
+        - chiefExamMins
+        - crossExamMins
+
+    HearingChecklistItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        hearingId:
+          type: integer
+        label:
+          type: string
+        isDone:
+          type: boolean
+        doneDate:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        isCustom:
+          type: boolean
+        sortOrder:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - hearingId
+        - label
+        - isDone
+        - isCustom
+        - sortOrder
+        - createdAt
+
+    CreateChecklistItemRequest:
+      type: object
+      properties:
+        label:
+          type: string
+      required:
+        - label
+
+    UpdateChecklistItemRequest:
+      type: object
+      properties:
+        isDone:
+          type: boolean
+        doneDate:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        label:
+          type: string
+      required:
+        - isDone
 
     ProceduralOrder:
       type: object

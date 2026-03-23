@@ -21,16 +21,25 @@ import type {
   Case,
   CaseDetail,
   CreateCaseRequest,
+  CreateChecklistItemRequest,
   CreateDeadlineRequest,
+  CreateHearingRequest,
+  CreateParticipantRequest,
   CreateProceduralOrderRequest,
   CreateRepresentativeRequest,
   CreateTribunalMemberRequest,
+  CreateWitnessScheduleRequest,
   Deadline,
   ErrorResponse,
   HealthStatus,
+  Hearing,
+  HearingChecklistItem,
+  HearingParticipant,
   ProceduralOrder,
   Representative,
   TribunalMember,
+  UpdateChecklistItemRequest,
+  WitnessScheduleEntry,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -1185,6 +1194,1502 @@ export const useDeleteRepresentative = <
   TContext
 > => {
   return useMutation(getDeleteRepresentativeMutationOptions(options));
+};
+
+/**
+ * @summary List hearings for a case
+ */
+export const getListHearingsUrl = (caseId: number) => {
+  return `/api/cases/${caseId}/hearings`;
+};
+
+export const listHearings = async (
+  caseId: number,
+  options?: RequestInit,
+): Promise<Hearing[]> => {
+  return customFetch<Hearing[]>(getListHearingsUrl(caseId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListHearingsQueryKey = (caseId: number) => {
+  return [`/api/cases/${caseId}/hearings`] as const;
+};
+
+export const getListHearingsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listHearings>>,
+  TError = ErrorType<unknown>,
+>(
+  caseId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listHearings>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListHearingsQueryKey(caseId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listHearings>>> = ({
+    signal,
+  }) => listHearings(caseId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!caseId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listHearings>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListHearingsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listHearings>>
+>;
+export type ListHearingsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List hearings for a case
+ */
+
+export function useListHearings<
+  TData = Awaited<ReturnType<typeof listHearings>>,
+  TError = ErrorType<unknown>,
+>(
+  caseId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listHearings>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListHearingsQueryOptions(caseId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Add a hearing to a case
+ */
+export const getAddHearingUrl = (caseId: number) => {
+  return `/api/cases/${caseId}/hearings`;
+};
+
+export const addHearing = async (
+  caseId: number,
+  createHearingRequest: CreateHearingRequest,
+  options?: RequestInit,
+): Promise<Hearing> => {
+  return customFetch<Hearing>(getAddHearingUrl(caseId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createHearingRequest),
+  });
+};
+
+export const getAddHearingMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addHearing>>,
+    TError,
+    { caseId: number; data: BodyType<CreateHearingRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addHearing>>,
+  TError,
+  { caseId: number; data: BodyType<CreateHearingRequest> },
+  TContext
+> => {
+  const mutationKey = ["addHearing"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addHearing>>,
+    { caseId: number; data: BodyType<CreateHearingRequest> }
+  > = (props) => {
+    const { caseId, data } = props ?? {};
+
+    return addHearing(caseId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddHearingMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addHearing>>
+>;
+export type AddHearingMutationBody = BodyType<CreateHearingRequest>;
+export type AddHearingMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Add a hearing to a case
+ */
+export const useAddHearing = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addHearing>>,
+    TError,
+    { caseId: number; data: BodyType<CreateHearingRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addHearing>>,
+  TError,
+  { caseId: number; data: BodyType<CreateHearingRequest> },
+  TContext
+> => {
+  return useMutation(getAddHearingMutationOptions(options));
+};
+
+/**
+ * @summary Update a hearing
+ */
+export const getUpdateHearingUrl = (caseId: number, hearingId: number) => {
+  return `/api/cases/${caseId}/hearings/${hearingId}`;
+};
+
+export const updateHearing = async (
+  caseId: number,
+  hearingId: number,
+  createHearingRequest: CreateHearingRequest,
+  options?: RequestInit,
+): Promise<Hearing> => {
+  return customFetch<Hearing>(getUpdateHearingUrl(caseId, hearingId), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createHearingRequest),
+  });
+};
+
+export const getUpdateHearingMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateHearing>>,
+    TError,
+    { caseId: number; hearingId: number; data: BodyType<CreateHearingRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateHearing>>,
+  TError,
+  { caseId: number; hearingId: number; data: BodyType<CreateHearingRequest> },
+  TContext
+> => {
+  const mutationKey = ["updateHearing"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateHearing>>,
+    { caseId: number; hearingId: number; data: BodyType<CreateHearingRequest> }
+  > = (props) => {
+    const { caseId, hearingId, data } = props ?? {};
+
+    return updateHearing(caseId, hearingId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateHearingMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateHearing>>
+>;
+export type UpdateHearingMutationBody = BodyType<CreateHearingRequest>;
+export type UpdateHearingMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update a hearing
+ */
+export const useUpdateHearing = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateHearing>>,
+    TError,
+    { caseId: number; hearingId: number; data: BodyType<CreateHearingRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateHearing>>,
+  TError,
+  { caseId: number; hearingId: number; data: BodyType<CreateHearingRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateHearingMutationOptions(options));
+};
+
+/**
+ * @summary Delete a hearing
+ */
+export const getDeleteHearingUrl = (caseId: number, hearingId: number) => {
+  return `/api/cases/${caseId}/hearings/${hearingId}`;
+};
+
+export const deleteHearing = async (
+  caseId: number,
+  hearingId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteHearingUrl(caseId, hearingId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteHearingMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteHearing>>,
+    TError,
+    { caseId: number; hearingId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteHearing>>,
+  TError,
+  { caseId: number; hearingId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteHearing"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteHearing>>,
+    { caseId: number; hearingId: number }
+  > = (props) => {
+    const { caseId, hearingId } = props ?? {};
+
+    return deleteHearing(caseId, hearingId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteHearingMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteHearing>>
+>;
+
+export type DeleteHearingMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Delete a hearing
+ */
+export const useDeleteHearing = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteHearing>>,
+    TError,
+    { caseId: number; hearingId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteHearing>>,
+  TError,
+  { caseId: number; hearingId: number },
+  TContext
+> => {
+  return useMutation(getDeleteHearingMutationOptions(options));
+};
+
+/**
+ * @summary List participants for a hearing
+ */
+export const getListParticipantsUrl = (hearingId: number) => {
+  return `/api/hearings/${hearingId}/participants`;
+};
+
+export const listParticipants = async (
+  hearingId: number,
+  options?: RequestInit,
+): Promise<HearingParticipant[]> => {
+  return customFetch<HearingParticipant[]>(getListParticipantsUrl(hearingId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListParticipantsQueryKey = (hearingId: number) => {
+  return [`/api/hearings/${hearingId}/participants`] as const;
+};
+
+export const getListParticipantsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listParticipants>>,
+  TError = ErrorType<unknown>,
+>(
+  hearingId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listParticipants>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListParticipantsQueryKey(hearingId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listParticipants>>
+  > = ({ signal }) =>
+    listParticipants(hearingId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!hearingId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listParticipants>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListParticipantsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listParticipants>>
+>;
+export type ListParticipantsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List participants for a hearing
+ */
+
+export function useListParticipants<
+  TData = Awaited<ReturnType<typeof listParticipants>>,
+  TError = ErrorType<unknown>,
+>(
+  hearingId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listParticipants>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListParticipantsQueryOptions(hearingId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Add a participant to a hearing
+ */
+export const getAddParticipantUrl = (hearingId: number) => {
+  return `/api/hearings/${hearingId}/participants`;
+};
+
+export const addParticipant = async (
+  hearingId: number,
+  createParticipantRequest: CreateParticipantRequest,
+  options?: RequestInit,
+): Promise<HearingParticipant> => {
+  return customFetch<HearingParticipant>(getAddParticipantUrl(hearingId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createParticipantRequest),
+  });
+};
+
+export const getAddParticipantMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addParticipant>>,
+    TError,
+    { hearingId: number; data: BodyType<CreateParticipantRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addParticipant>>,
+  TError,
+  { hearingId: number; data: BodyType<CreateParticipantRequest> },
+  TContext
+> => {
+  const mutationKey = ["addParticipant"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addParticipant>>,
+    { hearingId: number; data: BodyType<CreateParticipantRequest> }
+  > = (props) => {
+    const { hearingId, data } = props ?? {};
+
+    return addParticipant(hearingId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddParticipantMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addParticipant>>
+>;
+export type AddParticipantMutationBody = BodyType<CreateParticipantRequest>;
+export type AddParticipantMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Add a participant to a hearing
+ */
+export const useAddParticipant = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addParticipant>>,
+    TError,
+    { hearingId: number; data: BodyType<CreateParticipantRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addParticipant>>,
+  TError,
+  { hearingId: number; data: BodyType<CreateParticipantRequest> },
+  TContext
+> => {
+  return useMutation(getAddParticipantMutationOptions(options));
+};
+
+/**
+ * @summary Update a hearing participant
+ */
+export const getUpdateParticipantUrl = (
+  hearingId: number,
+  participantId: number,
+) => {
+  return `/api/hearings/${hearingId}/participants/${participantId}`;
+};
+
+export const updateParticipant = async (
+  hearingId: number,
+  participantId: number,
+  createParticipantRequest: CreateParticipantRequest,
+  options?: RequestInit,
+): Promise<HearingParticipant> => {
+  return customFetch<HearingParticipant>(
+    getUpdateParticipantUrl(hearingId, participantId),
+    {
+      ...options,
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(createParticipantRequest),
+    },
+  );
+};
+
+export const getUpdateParticipantMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateParticipant>>,
+    TError,
+    {
+      hearingId: number;
+      participantId: number;
+      data: BodyType<CreateParticipantRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateParticipant>>,
+  TError,
+  {
+    hearingId: number;
+    participantId: number;
+    data: BodyType<CreateParticipantRequest>;
+  },
+  TContext
+> => {
+  const mutationKey = ["updateParticipant"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateParticipant>>,
+    {
+      hearingId: number;
+      participantId: number;
+      data: BodyType<CreateParticipantRequest>;
+    }
+  > = (props) => {
+    const { hearingId, participantId, data } = props ?? {};
+
+    return updateParticipant(hearingId, participantId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateParticipantMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateParticipant>>
+>;
+export type UpdateParticipantMutationBody = BodyType<CreateParticipantRequest>;
+export type UpdateParticipantMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update a hearing participant
+ */
+export const useUpdateParticipant = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateParticipant>>,
+    TError,
+    {
+      hearingId: number;
+      participantId: number;
+      data: BodyType<CreateParticipantRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateParticipant>>,
+  TError,
+  {
+    hearingId: number;
+    participantId: number;
+    data: BodyType<CreateParticipantRequest>;
+  },
+  TContext
+> => {
+  return useMutation(getUpdateParticipantMutationOptions(options));
+};
+
+/**
+ * @summary Remove a participant from a hearing
+ */
+export const getDeleteParticipantUrl = (
+  hearingId: number,
+  participantId: number,
+) => {
+  return `/api/hearings/${hearingId}/participants/${participantId}`;
+};
+
+export const deleteParticipant = async (
+  hearingId: number,
+  participantId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteParticipantUrl(hearingId, participantId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteParticipantMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteParticipant>>,
+    TError,
+    { hearingId: number; participantId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteParticipant>>,
+  TError,
+  { hearingId: number; participantId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteParticipant"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteParticipant>>,
+    { hearingId: number; participantId: number }
+  > = (props) => {
+    const { hearingId, participantId } = props ?? {};
+
+    return deleteParticipant(hearingId, participantId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteParticipantMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteParticipant>>
+>;
+
+export type DeleteParticipantMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Remove a participant from a hearing
+ */
+export const useDeleteParticipant = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteParticipant>>,
+    TError,
+    { hearingId: number; participantId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteParticipant>>,
+  TError,
+  { hearingId: number; participantId: number },
+  TContext
+> => {
+  return useMutation(getDeleteParticipantMutationOptions(options));
+};
+
+/**
+ * @summary List witness/expert schedule entries for a hearing
+ */
+export const getListWitnessScheduleUrl = (hearingId: number) => {
+  return `/api/hearings/${hearingId}/witness-schedule`;
+};
+
+export const listWitnessSchedule = async (
+  hearingId: number,
+  options?: RequestInit,
+): Promise<WitnessScheduleEntry[]> => {
+  return customFetch<WitnessScheduleEntry[]>(
+    getListWitnessScheduleUrl(hearingId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getListWitnessScheduleQueryKey = (hearingId: number) => {
+  return [`/api/hearings/${hearingId}/witness-schedule`] as const;
+};
+
+export const getListWitnessScheduleQueryOptions = <
+  TData = Awaited<ReturnType<typeof listWitnessSchedule>>,
+  TError = ErrorType<unknown>,
+>(
+  hearingId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listWitnessSchedule>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListWitnessScheduleQueryKey(hearingId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listWitnessSchedule>>
+  > = ({ signal }) =>
+    listWitnessSchedule(hearingId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!hearingId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listWitnessSchedule>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListWitnessScheduleQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listWitnessSchedule>>
+>;
+export type ListWitnessScheduleQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List witness/expert schedule entries for a hearing
+ */
+
+export function useListWitnessSchedule<
+  TData = Awaited<ReturnType<typeof listWitnessSchedule>>,
+  TError = ErrorType<unknown>,
+>(
+  hearingId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listWitnessSchedule>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListWitnessScheduleQueryOptions(hearingId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Add a witness/expert to the schedule
+ */
+export const getAddWitnessScheduleEntryUrl = (hearingId: number) => {
+  return `/api/hearings/${hearingId}/witness-schedule`;
+};
+
+export const addWitnessScheduleEntry = async (
+  hearingId: number,
+  createWitnessScheduleRequest: CreateWitnessScheduleRequest,
+  options?: RequestInit,
+): Promise<WitnessScheduleEntry> => {
+  return customFetch<WitnessScheduleEntry>(
+    getAddWitnessScheduleEntryUrl(hearingId),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(createWitnessScheduleRequest),
+    },
+  );
+};
+
+export const getAddWitnessScheduleEntryMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addWitnessScheduleEntry>>,
+    TError,
+    { hearingId: number; data: BodyType<CreateWitnessScheduleRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addWitnessScheduleEntry>>,
+  TError,
+  { hearingId: number; data: BodyType<CreateWitnessScheduleRequest> },
+  TContext
+> => {
+  const mutationKey = ["addWitnessScheduleEntry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addWitnessScheduleEntry>>,
+    { hearingId: number; data: BodyType<CreateWitnessScheduleRequest> }
+  > = (props) => {
+    const { hearingId, data } = props ?? {};
+
+    return addWitnessScheduleEntry(hearingId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddWitnessScheduleEntryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addWitnessScheduleEntry>>
+>;
+export type AddWitnessScheduleEntryMutationBody =
+  BodyType<CreateWitnessScheduleRequest>;
+export type AddWitnessScheduleEntryMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Add a witness/expert to the schedule
+ */
+export const useAddWitnessScheduleEntry = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addWitnessScheduleEntry>>,
+    TError,
+    { hearingId: number; data: BodyType<CreateWitnessScheduleRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addWitnessScheduleEntry>>,
+  TError,
+  { hearingId: number; data: BodyType<CreateWitnessScheduleRequest> },
+  TContext
+> => {
+  return useMutation(getAddWitnessScheduleEntryMutationOptions(options));
+};
+
+/**
+ * @summary Update a witness schedule entry
+ */
+export const getUpdateWitnessScheduleEntryUrl = (
+  hearingId: number,
+  entryId: number,
+) => {
+  return `/api/hearings/${hearingId}/witness-schedule/${entryId}`;
+};
+
+export const updateWitnessScheduleEntry = async (
+  hearingId: number,
+  entryId: number,
+  createWitnessScheduleRequest: CreateWitnessScheduleRequest,
+  options?: RequestInit,
+): Promise<WitnessScheduleEntry> => {
+  return customFetch<WitnessScheduleEntry>(
+    getUpdateWitnessScheduleEntryUrl(hearingId, entryId),
+    {
+      ...options,
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(createWitnessScheduleRequest),
+    },
+  );
+};
+
+export const getUpdateWitnessScheduleEntryMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateWitnessScheduleEntry>>,
+    TError,
+    {
+      hearingId: number;
+      entryId: number;
+      data: BodyType<CreateWitnessScheduleRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateWitnessScheduleEntry>>,
+  TError,
+  {
+    hearingId: number;
+    entryId: number;
+    data: BodyType<CreateWitnessScheduleRequest>;
+  },
+  TContext
+> => {
+  const mutationKey = ["updateWitnessScheduleEntry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateWitnessScheduleEntry>>,
+    {
+      hearingId: number;
+      entryId: number;
+      data: BodyType<CreateWitnessScheduleRequest>;
+    }
+  > = (props) => {
+    const { hearingId, entryId, data } = props ?? {};
+
+    return updateWitnessScheduleEntry(hearingId, entryId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateWitnessScheduleEntryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateWitnessScheduleEntry>>
+>;
+export type UpdateWitnessScheduleEntryMutationBody =
+  BodyType<CreateWitnessScheduleRequest>;
+export type UpdateWitnessScheduleEntryMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update a witness schedule entry
+ */
+export const useUpdateWitnessScheduleEntry = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateWitnessScheduleEntry>>,
+    TError,
+    {
+      hearingId: number;
+      entryId: number;
+      data: BodyType<CreateWitnessScheduleRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateWitnessScheduleEntry>>,
+  TError,
+  {
+    hearingId: number;
+    entryId: number;
+    data: BodyType<CreateWitnessScheduleRequest>;
+  },
+  TContext
+> => {
+  return useMutation(getUpdateWitnessScheduleEntryMutationOptions(options));
+};
+
+/**
+ * @summary Delete a witness schedule entry
+ */
+export const getDeleteWitnessScheduleEntryUrl = (
+  hearingId: number,
+  entryId: number,
+) => {
+  return `/api/hearings/${hearingId}/witness-schedule/${entryId}`;
+};
+
+export const deleteWitnessScheduleEntry = async (
+  hearingId: number,
+  entryId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(
+    getDeleteWitnessScheduleEntryUrl(hearingId, entryId),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getDeleteWitnessScheduleEntryMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteWitnessScheduleEntry>>,
+    TError,
+    { hearingId: number; entryId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteWitnessScheduleEntry>>,
+  TError,
+  { hearingId: number; entryId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteWitnessScheduleEntry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteWitnessScheduleEntry>>,
+    { hearingId: number; entryId: number }
+  > = (props) => {
+    const { hearingId, entryId } = props ?? {};
+
+    return deleteWitnessScheduleEntry(hearingId, entryId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteWitnessScheduleEntryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteWitnessScheduleEntry>>
+>;
+
+export type DeleteWitnessScheduleEntryMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Delete a witness schedule entry
+ */
+export const useDeleteWitnessScheduleEntry = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteWitnessScheduleEntry>>,
+    TError,
+    { hearingId: number; entryId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteWitnessScheduleEntry>>,
+  TError,
+  { hearingId: number; entryId: number },
+  TContext
+> => {
+  return useMutation(getDeleteWitnessScheduleEntryMutationOptions(options));
+};
+
+/**
+ * @summary List preparation checklist items for a hearing
+ */
+export const getListChecklistItemsUrl = (hearingId: number) => {
+  return `/api/hearings/${hearingId}/checklist`;
+};
+
+export const listChecklistItems = async (
+  hearingId: number,
+  options?: RequestInit,
+): Promise<HearingChecklistItem[]> => {
+  return customFetch<HearingChecklistItem[]>(
+    getListChecklistItemsUrl(hearingId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getListChecklistItemsQueryKey = (hearingId: number) => {
+  return [`/api/hearings/${hearingId}/checklist`] as const;
+};
+
+export const getListChecklistItemsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listChecklistItems>>,
+  TError = ErrorType<unknown>,
+>(
+  hearingId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listChecklistItems>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListChecklistItemsQueryKey(hearingId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listChecklistItems>>
+  > = ({ signal }) =>
+    listChecklistItems(hearingId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!hearingId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listChecklistItems>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListChecklistItemsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listChecklistItems>>
+>;
+export type ListChecklistItemsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List preparation checklist items for a hearing
+ */
+
+export function useListChecklistItems<
+  TData = Awaited<ReturnType<typeof listChecklistItems>>,
+  TError = ErrorType<unknown>,
+>(
+  hearingId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listChecklistItems>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListChecklistItemsQueryOptions(hearingId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Add a custom checklist item
+ */
+export const getAddChecklistItemUrl = (hearingId: number) => {
+  return `/api/hearings/${hearingId}/checklist`;
+};
+
+export const addChecklistItem = async (
+  hearingId: number,
+  createChecklistItemRequest: CreateChecklistItemRequest,
+  options?: RequestInit,
+): Promise<HearingChecklistItem> => {
+  return customFetch<HearingChecklistItem>(getAddChecklistItemUrl(hearingId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createChecklistItemRequest),
+  });
+};
+
+export const getAddChecklistItemMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addChecklistItem>>,
+    TError,
+    { hearingId: number; data: BodyType<CreateChecklistItemRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addChecklistItem>>,
+  TError,
+  { hearingId: number; data: BodyType<CreateChecklistItemRequest> },
+  TContext
+> => {
+  const mutationKey = ["addChecklistItem"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addChecklistItem>>,
+    { hearingId: number; data: BodyType<CreateChecklistItemRequest> }
+  > = (props) => {
+    const { hearingId, data } = props ?? {};
+
+    return addChecklistItem(hearingId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddChecklistItemMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addChecklistItem>>
+>;
+export type AddChecklistItemMutationBody = BodyType<CreateChecklistItemRequest>;
+export type AddChecklistItemMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Add a custom checklist item
+ */
+export const useAddChecklistItem = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addChecklistItem>>,
+    TError,
+    { hearingId: number; data: BodyType<CreateChecklistItemRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addChecklistItem>>,
+  TError,
+  { hearingId: number; data: BodyType<CreateChecklistItemRequest> },
+  TContext
+> => {
+  return useMutation(getAddChecklistItemMutationOptions(options));
+};
+
+/**
+ * @summary Update a checklist item (toggle done/undone, add notes)
+ */
+export const getUpdateChecklistItemUrl = (
+  hearingId: number,
+  itemId: number,
+) => {
+  return `/api/hearings/${hearingId}/checklist/${itemId}`;
+};
+
+export const updateChecklistItem = async (
+  hearingId: number,
+  itemId: number,
+  updateChecklistItemRequest: UpdateChecklistItemRequest,
+  options?: RequestInit,
+): Promise<HearingChecklistItem> => {
+  return customFetch<HearingChecklistItem>(
+    getUpdateChecklistItemUrl(hearingId, itemId),
+    {
+      ...options,
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(updateChecklistItemRequest),
+    },
+  );
+};
+
+export const getUpdateChecklistItemMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateChecklistItem>>,
+    TError,
+    {
+      hearingId: number;
+      itemId: number;
+      data: BodyType<UpdateChecklistItemRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateChecklistItem>>,
+  TError,
+  {
+    hearingId: number;
+    itemId: number;
+    data: BodyType<UpdateChecklistItemRequest>;
+  },
+  TContext
+> => {
+  const mutationKey = ["updateChecklistItem"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateChecklistItem>>,
+    {
+      hearingId: number;
+      itemId: number;
+      data: BodyType<UpdateChecklistItemRequest>;
+    }
+  > = (props) => {
+    const { hearingId, itemId, data } = props ?? {};
+
+    return updateChecklistItem(hearingId, itemId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateChecklistItemMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateChecklistItem>>
+>;
+export type UpdateChecklistItemMutationBody =
+  BodyType<UpdateChecklistItemRequest>;
+export type UpdateChecklistItemMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update a checklist item (toggle done/undone, add notes)
+ */
+export const useUpdateChecklistItem = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateChecklistItem>>,
+    TError,
+    {
+      hearingId: number;
+      itemId: number;
+      data: BodyType<UpdateChecklistItemRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateChecklistItem>>,
+  TError,
+  {
+    hearingId: number;
+    itemId: number;
+    data: BodyType<UpdateChecklistItemRequest>;
+  },
+  TContext
+> => {
+  return useMutation(getUpdateChecklistItemMutationOptions(options));
+};
+
+/**
+ * @summary Delete a custom checklist item
+ */
+export const getDeleteChecklistItemUrl = (
+  hearingId: number,
+  itemId: number,
+) => {
+  return `/api/hearings/${hearingId}/checklist/${itemId}`;
+};
+
+export const deleteChecklistItem = async (
+  hearingId: number,
+  itemId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteChecklistItemUrl(hearingId, itemId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteChecklistItemMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteChecklistItem>>,
+    TError,
+    { hearingId: number; itemId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteChecklistItem>>,
+  TError,
+  { hearingId: number; itemId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteChecklistItem"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteChecklistItem>>,
+    { hearingId: number; itemId: number }
+  > = (props) => {
+    const { hearingId, itemId } = props ?? {};
+
+    return deleteChecklistItem(hearingId, itemId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteChecklistItemMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteChecklistItem>>
+>;
+
+export type DeleteChecklistItemMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Delete a custom checklist item
+ */
+export const useDeleteChecklistItem = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteChecklistItem>>,
+    TError,
+    { hearingId: number; itemId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteChecklistItem>>,
+  TError,
+  { hearingId: number; itemId: number },
+  TContext
+> => {
+  return useMutation(getDeleteChecklistItemMutationOptions(options));
 };
 
 /**

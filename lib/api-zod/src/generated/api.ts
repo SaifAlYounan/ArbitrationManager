@@ -307,6 +307,309 @@ export const DeleteRepresentativeParams = zod.object({
 });
 
 /**
+ * @summary List hearings for a case
+ */
+export const ListHearingsParams = zod.object({
+  caseId: zod.coerce.number(),
+});
+
+export const ListHearingsResponseItem = zod.object({
+  id: zod.number(),
+  caseId: zod.number(),
+  hearingType: zod.enum(["Merits", "Jurisdiction", "Quantum", "Procedural"]),
+  startDate: zod.date(),
+  endDate: zod.date(),
+  location: zod.string(),
+  isVirtual: zod.boolean(),
+  platform: zod.string().nullish(),
+  startTime: zod.string(),
+  endTime: zod.string(),
+  timezoneOfRecord: zod.string(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+export const ListHearingsResponse = zod.array(ListHearingsResponseItem);
+
+/**
+ * @summary Add a hearing to a case
+ */
+export const AddHearingParams = zod.object({
+  caseId: zod.coerce.number(),
+});
+
+export const AddHearingBody = zod.object({
+  hearingType: zod.enum(["Merits", "Jurisdiction", "Quantum", "Procedural"]),
+  startDate: zod.date(),
+  endDate: zod.date(),
+  location: zod.string(),
+  isVirtual: zod.boolean(),
+  platform: zod.string().nullish(),
+  startTime: zod.string(),
+  endTime: zod.string(),
+  timezoneOfRecord: zod.string(),
+});
+
+/**
+ * @summary Update a hearing
+ */
+export const UpdateHearingParams = zod.object({
+  caseId: zod.coerce.number(),
+  hearingId: zod.coerce.number(),
+});
+
+export const UpdateHearingBody = zod.object({
+  hearingType: zod.enum(["Merits", "Jurisdiction", "Quantum", "Procedural"]),
+  startDate: zod.date(),
+  endDate: zod.date(),
+  location: zod.string(),
+  isVirtual: zod.boolean(),
+  platform: zod.string().nullish(),
+  startTime: zod.string(),
+  endTime: zod.string(),
+  timezoneOfRecord: zod.string(),
+});
+
+export const UpdateHearingResponse = zod.object({
+  id: zod.number(),
+  caseId: zod.number(),
+  hearingType: zod.enum(["Merits", "Jurisdiction", "Quantum", "Procedural"]),
+  startDate: zod.date(),
+  endDate: zod.date(),
+  location: zod.string(),
+  isVirtual: zod.boolean(),
+  platform: zod.string().nullish(),
+  startTime: zod.string(),
+  endTime: zod.string(),
+  timezoneOfRecord: zod.string(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+
+/**
+ * @summary Delete a hearing
+ */
+export const DeleteHearingParams = zod.object({
+  caseId: zod.coerce.number(),
+  hearingId: zod.coerce.number(),
+});
+
+/**
+ * @summary List participants for a hearing
+ */
+export const ListParticipantsParams = zod.object({
+  hearingId: zod.coerce.number(),
+});
+
+export const ListParticipantsResponseItem = zod.object({
+  id: zod.number(),
+  hearingId: zod.number(),
+  name: zod.string(),
+  role: zod.string(),
+  timezone: zod.string(),
+  attendance: zod.enum(["In Person", "Remote"]),
+  attendingDays: zod.string(),
+  createdAt: zod.date(),
+});
+export const ListParticipantsResponse = zod.array(ListParticipantsResponseItem);
+
+/**
+ * @summary Add a participant to a hearing
+ */
+export const AddParticipantParams = zod.object({
+  hearingId: zod.coerce.number(),
+});
+
+export const AddParticipantBody = zod.object({
+  name: zod.string(),
+  role: zod.string(),
+  timezone: zod.string(),
+  attendance: zod.enum(["In Person", "Remote"]),
+  attendingDays: zod.string(),
+});
+
+/**
+ * @summary Update a hearing participant
+ */
+export const UpdateParticipantParams = zod.object({
+  hearingId: zod.coerce.number(),
+  participantId: zod.coerce.number(),
+});
+
+export const UpdateParticipantBody = zod.object({
+  name: zod.string(),
+  role: zod.string(),
+  timezone: zod.string(),
+  attendance: zod.enum(["In Person", "Remote"]),
+  attendingDays: zod.string(),
+});
+
+export const UpdateParticipantResponse = zod.object({
+  id: zod.number(),
+  hearingId: zod.number(),
+  name: zod.string(),
+  role: zod.string(),
+  timezone: zod.string(),
+  attendance: zod.enum(["In Person", "Remote"]),
+  attendingDays: zod.string(),
+  createdAt: zod.date(),
+});
+
+/**
+ * @summary Remove a participant from a hearing
+ */
+export const DeleteParticipantParams = zod.object({
+  hearingId: zod.coerce.number(),
+  participantId: zod.coerce.number(),
+});
+
+/**
+ * @summary List witness/expert schedule entries for a hearing
+ */
+export const ListWitnessScheduleParams = zod.object({
+  hearingId: zod.coerce.number(),
+});
+
+export const ListWitnessScheduleResponseItem = zod.object({
+  id: zod.number(),
+  hearingId: zod.number(),
+  witnessName: zod.string(),
+  witnessRole: zod.enum(["Witness", "Expert"]),
+  hearingDay: zod.date(),
+  chiefExamMins: zod.number(),
+  crossExamMins: zod.number(),
+  examiningCounsel: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  createdAt: zod.date(),
+});
+export const ListWitnessScheduleResponse = zod.array(
+  ListWitnessScheduleResponseItem,
+);
+
+/**
+ * @summary Add a witness/expert to the schedule
+ */
+export const AddWitnessScheduleEntryParams = zod.object({
+  hearingId: zod.coerce.number(),
+});
+
+export const AddWitnessScheduleEntryBody = zod.object({
+  witnessName: zod.string(),
+  witnessRole: zod.enum(["Witness", "Expert"]),
+  hearingDay: zod.date(),
+  chiefExamMins: zod.number(),
+  crossExamMins: zod.number(),
+  examiningCounsel: zod.string().nullish(),
+  notes: zod.string().nullish(),
+});
+
+/**
+ * @summary Update a witness schedule entry
+ */
+export const UpdateWitnessScheduleEntryParams = zod.object({
+  hearingId: zod.coerce.number(),
+  entryId: zod.coerce.number(),
+});
+
+export const UpdateWitnessScheduleEntryBody = zod.object({
+  witnessName: zod.string(),
+  witnessRole: zod.enum(["Witness", "Expert"]),
+  hearingDay: zod.date(),
+  chiefExamMins: zod.number(),
+  crossExamMins: zod.number(),
+  examiningCounsel: zod.string().nullish(),
+  notes: zod.string().nullish(),
+});
+
+export const UpdateWitnessScheduleEntryResponse = zod.object({
+  id: zod.number(),
+  hearingId: zod.number(),
+  witnessName: zod.string(),
+  witnessRole: zod.enum(["Witness", "Expert"]),
+  hearingDay: zod.date(),
+  chiefExamMins: zod.number(),
+  crossExamMins: zod.number(),
+  examiningCounsel: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  createdAt: zod.date(),
+});
+
+/**
+ * @summary Delete a witness schedule entry
+ */
+export const DeleteWitnessScheduleEntryParams = zod.object({
+  hearingId: zod.coerce.number(),
+  entryId: zod.coerce.number(),
+});
+
+/**
+ * @summary List preparation checklist items for a hearing
+ */
+export const ListChecklistItemsParams = zod.object({
+  hearingId: zod.coerce.number(),
+});
+
+export const ListChecklistItemsResponseItem = zod.object({
+  id: zod.number(),
+  hearingId: zod.number(),
+  label: zod.string(),
+  isDone: zod.boolean(),
+  doneDate: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  isCustom: zod.boolean(),
+  sortOrder: zod.number(),
+  createdAt: zod.date(),
+});
+export const ListChecklistItemsResponse = zod.array(
+  ListChecklistItemsResponseItem,
+);
+
+/**
+ * @summary Add a custom checklist item
+ */
+export const AddChecklistItemParams = zod.object({
+  hearingId: zod.coerce.number(),
+});
+
+export const AddChecklistItemBody = zod.object({
+  label: zod.string(),
+});
+
+/**
+ * @summary Update a checklist item (toggle done/undone, add notes)
+ */
+export const UpdateChecklistItemParams = zod.object({
+  hearingId: zod.coerce.number(),
+  itemId: zod.coerce.number(),
+});
+
+export const UpdateChecklistItemBody = zod.object({
+  isDone: zod.boolean(),
+  doneDate: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  label: zod.string().optional(),
+});
+
+export const UpdateChecklistItemResponse = zod.object({
+  id: zod.number(),
+  hearingId: zod.number(),
+  label: zod.string(),
+  isDone: zod.boolean(),
+  doneDate: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  isCustom: zod.boolean(),
+  sortOrder: zod.number(),
+  createdAt: zod.date(),
+});
+
+/**
+ * @summary Delete a custom checklist item
+ */
+export const DeleteChecklistItemParams = zod.object({
+  hearingId: zod.coerce.number(),
+  itemId: zod.coerce.number(),
+});
+
+/**
  * @summary List all procedural orders for a case
  */
 export const ListProceduralOrdersParams = zod.object({

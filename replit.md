@@ -44,7 +44,19 @@ A professional web app for managing ICC international arbitration cases.
 
 - **Case List** (landing page): Card grid showing all cases with reference, name, parties, and status badge
 - **New Case Form** (`/cases/new`): Create cases with all procedural fields
-- **Case Dashboard** (`/cases/:id`): Five-tab dashboard — Case Details, Tribunal, Representatives, Procedural Orders, Procedural Calendar
+- **Case Dashboard** (`/cases/:id`): Six-tab dashboard — Case Details, Tribunal, Representatives, Procedural Orders, Procedural Calendar, Hearing Logistics
+
+### Hearing Logistics Tab
+
+- Multiple hearings per case (e.g. Jurisdiction + Merits); hearing selector pill tabs at top
+- **Hearing Details**: Type (Merits/Jurisdiction/Quantum/Procedural), start/end dates, daily start/end time, timezone of record, location (physical or virtual), platform (Zoom/Teams/Arbitration Place/Other)
+- **Participant Schedule**: Name, Role (from a curated ICC arbitration role list), Timezone, Attendance (In Person/Remote), Days Attending (checkboxes per hearing day); full edit/delete
+- **Time Zone Grid**: Auto-computed table showing session start/end times in each participant's local timezone using `Intl.DateTimeFormat`. Flags participants outside 07:00–22:00 local time with ⚠️ Unsociable hours warning
+- **Witness/Expert Schedule**: Timetable grouped by hearing day; per-entry: Name, Role (Witness/Expert), Examination-in-Chief duration, Cross-Examination duration, Total time, Examining Counsel, Notes
+- **Preparation Checklist**: 15 ICC-standard items auto-seeded on hearing creation; toggle Done/Undone with auto-date; notes expander per item; custom items can be added and deleted; progress bar with 100% completion celebration
+- DB tables: `hearings`, `hearing_participants`, `witness_schedule`, `hearing_checklist`
+- API routes: hearings at `/api/cases/:caseId/hearings`, sub-resources at `/api/hearings/:hearingId/participants|witness-schedule|checklist`
+- Date coercion: `coerceHearingDates()` converts ISO date strings to Date objects before Zod parse, `flattenHearingBody()` converts back to ISO strings for DB text columns
 
 ### Procedural Orders Tab
 

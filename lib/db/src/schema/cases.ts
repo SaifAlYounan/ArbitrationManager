@@ -87,3 +87,71 @@ export const proceduralOrdersTable = pgTable("procedural_orders", {
 export const insertProceduralOrderSchema = createInsertSchema(proceduralOrdersTable).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertProceduralOrder = z.infer<typeof insertProceduralOrderSchema>;
 export type ProceduralOrder = typeof proceduralOrdersTable.$inferSelect;
+
+export const hearingsTable = pgTable("hearings", {
+  id: serial("id").primaryKey(),
+  caseId: integer("case_id").notNull().references(() => casesTable.id, { onDelete: "cascade" }),
+  hearingType: text("hearing_type").notNull(),
+  startDate: text("start_date").notNull(),
+  endDate: text("end_date").notNull(),
+  location: text("location").notNull(),
+  isVirtual: boolean("is_virtual").notNull().default(false),
+  platform: text("platform"),
+  startTime: text("start_time").notNull(),
+  endTime: text("end_time").notNull(),
+  timezoneOfRecord: text("timezone_of_record").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
+export const insertHearingSchema = createInsertSchema(hearingsTable).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertHearing = z.infer<typeof insertHearingSchema>;
+export type Hearing = typeof hearingsTable.$inferSelect;
+
+export const hearingParticipantsTable = pgTable("hearing_participants", {
+  id: serial("id").primaryKey(),
+  hearingId: integer("hearing_id").notNull().references(() => hearingsTable.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  role: text("role").notNull(),
+  timezone: text("timezone").notNull(),
+  attendance: text("attendance").notNull().default("In Person"),
+  attendingDays: text("attending_days").notNull().default("[]"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const insertHearingParticipantSchema = createInsertSchema(hearingParticipantsTable).omit({ id: true, createdAt: true });
+export type InsertHearingParticipant = z.infer<typeof insertHearingParticipantSchema>;
+export type HearingParticipant = typeof hearingParticipantsTable.$inferSelect;
+
+export const witnessScheduleTable = pgTable("witness_schedule", {
+  id: serial("id").primaryKey(),
+  hearingId: integer("hearing_id").notNull().references(() => hearingsTable.id, { onDelete: "cascade" }),
+  witnessName: text("witness_name").notNull(),
+  witnessRole: text("witness_role").notNull().default("Witness"),
+  hearingDay: text("hearing_day").notNull(),
+  chiefExamMins: integer("chief_exam_mins").notNull().default(0),
+  crossExamMins: integer("cross_exam_mins").notNull().default(0),
+  examiningCounsel: text("examining_counsel"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const insertWitnessScheduleSchema = createInsertSchema(witnessScheduleTable).omit({ id: true, createdAt: true });
+export type InsertWitnessSchedule = z.infer<typeof insertWitnessScheduleSchema>;
+export type WitnessSchedule = typeof witnessScheduleTable.$inferSelect;
+
+export const hearingChecklistTable = pgTable("hearing_checklist", {
+  id: serial("id").primaryKey(),
+  hearingId: integer("hearing_id").notNull().references(() => hearingsTable.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  isDone: boolean("is_done").notNull().default(false),
+  doneDate: text("done_date"),
+  notes: text("notes"),
+  isCustom: boolean("is_custom").notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const insertHearingChecklistSchema = createInsertSchema(hearingChecklistTable).omit({ id: true, createdAt: true });
+export type InsertHearingChecklist = z.infer<typeof insertHearingChecklistSchema>;
+export type HearingChecklist = typeof hearingChecklistTable.$inferSelect;
