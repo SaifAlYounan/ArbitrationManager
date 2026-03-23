@@ -77,6 +77,35 @@ async function seedCase1() {
     { caseId, exhibitNumber: "C-001", party: "Claimant", description: "Energy Supply and Investment Agreement dated 12 March 2021", date: "2024-11-15", status: "Filed" },
     { caseId, exhibitNumber: "C-002", party: "Claimant", description: "Notice of Dispute and Request for Arbitration dated 30 October 2024", date: "2024-11-01", status: "Filed" },
   ]);
+
+  const [rcF] = await db.insert(rateCardTable).values(
+    { caseId, name: "Alexandra Fischer", role: "Partner", hourlyRate: "820.00", currency: "USD", party: "Claimant" }
+  ).returning({ id: rateCardTable.id });
+  const [rcB] = await db.insert(rateCardTable).values(
+    { caseId, name: "Thomas Braun", role: "Senior Associate", hourlyRate: "420.00", currency: "USD", party: "Claimant" }
+  ).returning({ id: rateCardTable.id });
+
+  await db.insert(timeEntriesTable).values([
+    { caseId, rateCardId: rcF.id, memberName: "Alexandra Fischer", date: "2024-11-12", hours: "8.00",  phase: "General Case Management", description: "Case intake, assessment of energy investment dispute and BIT analysis" },
+    { caseId, rateCardId: rcF.id, memberName: "Alexandra Fischer", date: "2024-11-22", hours: "12.00", phase: "Written Submissions",     description: "Review and finalise Request for Arbitration and ICC Notice of Arbitration" },
+    { caseId, rateCardId: rcF.id, memberName: "Alexandra Fischer", date: "2024-12-20", hours: "6.00",  phase: "General Case Management", description: "Analysis of Respondent's Answer to RfA and preliminary counter-strategy" },
+    { caseId, rateCardId: rcF.id, memberName: "Alexandra Fischer", date: "2025-02-12", hours: "4.00",  phase: "General Case Management", description: "Expert engagement and preliminary quantum assessment meeting" },
+    { caseId, rateCardId: rcF.id, memberName: "Alexandra Fischer", date: "2025-03-25", hours: "4.50",  phase: "General Case Management", description: "Client strategy session and preliminary case roadmap" },
+    { caseId, rateCardId: rcF.id, memberName: "Alexandra Fischer", date: "2026-01-15", hours: "6.00",  phase: "General Case Management", description: "CMC preparation — draft procedural agenda and proposed timetable" },
+    { caseId, rateCardId: rcF.id, memberName: "Alexandra Fischer", date: "2026-03-10", hours: "5.00",  phase: "General Case Management", description: "CMC attendance and post-conference Tribunal correspondence" },
+    { caseId, rateCardId: rcB.id, memberName: "Thomas Braun",      date: "2024-11-18", hours: "14.00", phase: "General Case Management", description: "Document collection, exhibits schedule, initial investment treaty research" },
+    { caseId, rateCardId: rcB.id, memberName: "Thomas Braun",      date: "2024-12-05", hours: "9.00",  phase: "General Case Management", description: "Research: Latvinian regulatory and energy sector legal framework" },
+    { caseId, rateCardId: rcB.id, memberName: "Thomas Braun",      date: "2025-01-08", hours: "14.00", phase: "General Case Management", description: "BIT analysis — fair and equitable treatment and expropriation standards" },
+    { caseId, rateCardId: rcB.id, memberName: "Thomas Braun",      date: "2025-02-20", hours: "10.00", phase: "General Case Management", description: "Jurisdictional objections and admissibility issues research" },
+    { caseId, rateCardId: rcB.id, memberName: "Thomas Braun",      date: "2025-04-14", hours: "12.00", phase: "Written Submissions",     description: "Preliminary legal framework for Memorial — BIT liability analysis draft" },
+    { caseId, rateCardId: rcB.id, memberName: "Thomas Braun",      date: "2026-02-10", hours: "8.00",  phase: "Written Submissions",     description: "Draft CMC submissions and proposed procedural timetable" },
+    { caseId, rateCardId: rcB.id, memberName: "Thomas Braun",      date: "2026-03-05", hours: "4.50",  phase: "General Case Management", description: "Revising proposed timetable and Tribunal correspondence" },
+  ]);
+
+  await db.insert(disbursementsTable).values([
+    { caseId, category: "Filing Fees",   amount: "5500.00", currency: "USD", date: "2024-11-05", description: "ICC Administrative Fees — Registration and advance on costs",       party: "Claimant" },
+    { caseId, category: "Local Counsel", amount: "8200.00", currency: "USD", date: "2025-02-15", description: "Latvinian local counsel — initial engagement and regulatory advice", party: "Claimant" },
+  ]);
 }
 
 /* ──────────────────────────────────────────────
@@ -129,14 +158,49 @@ async function seedCase2() {
     { caseId, exhibitNumber: "R-002", party: "Respondent", description: "Surveyor Expert Report on Vessel Condition", date: "2024-06-20", status: "Disputed" },
   ]);
 
-  await db.insert(rateCardTable).values([
-    { caseId, name: "Sarah Chen", role: "Partner", hourlyRate: "750.00", currency: "USD", party: "Claimant" },
-  ]);
+  const [rcS] = await db.insert(rateCardTable).values(
+    { caseId, name: "Sarah Chen",   role: "Partner",          hourlyRate: "750.00", currency: "USD", party: "Claimant" }
+  ).returning({ id: rateCardTable.id });
+  const [rcO] = await db.insert(rateCardTable).values(
+    { caseId, name: "James Oliver", role: "Senior Associate", hourlyRate: "450.00", currency: "USD", party: "Claimant" }
+  ).returning({ id: rateCardTable.id });
+  const [rcW] = await db.insert(rateCardTable).values(
+    { caseId, name: "Amy Walsh",    role: "Associate",        hourlyRate: "280.00", currency: "USD", party: "Claimant" }
+  ).returning({ id: rateCardTable.id });
 
   await db.insert(timeEntriesTable).values([
-    { caseId, memberName: "Sarah Chen", date: "2024-09-01", hours: "12.50", phase: "Written Submissions", description: "Drafting Statement of Claim" },
-    { caseId, memberName: "Sarah Chen", date: "2024-09-10", hours: "8.00", phase: "Written Submissions", description: "Review and revising exhibits schedule" },
-    { caseId, memberName: "Sarah Chen", date: "2024-09-20", hours: "6.00", phase: "General Case Management", description: "Pre-submission client calls and strategy" },
+    // Case inception & ToR (Mar-Apr 2024)
+    { caseId, rateCardId: rcS.id, memberName: "Sarah Chen",   date: "2024-03-20", hours: "18.00", phase: "General Case Management", description: "Case intake, initial dispute assessment and Request for Arbitration preparation" },
+    { caseId, rateCardId: rcO.id, memberName: "James Oliver", date: "2024-03-25", hours: "12.00", phase: "General Case Management", description: "Initial document collection and factual background research" },
+    { caseId, rateCardId: rcS.id, memberName: "Sarah Chen",   date: "2024-04-18", hours: "8.00",  phase: "General Case Management", description: "Terms of Reference negotiation and case management conference attendance" },
+    { caseId, rateCardId: rcO.id, memberName: "James Oliver", date: "2024-04-22", hours: "10.00", phase: "General Case Management", description: "CMC agenda preparation and procedural submissions" },
+    { caseId, rateCardId: rcW.id, memberName: "Amy Walsh",    date: "2024-04-28", hours: "14.00", phase: "General Case Management", description: "Events chronology, initial exhibits schedule and document register" },
+    // Document production (May-Jul 2024)
+    { caseId, rateCardId: rcO.id, memberName: "James Oliver", date: "2024-05-15", hours: "22.00", phase: "Document Production",     description: "Document production requests — Redfern Schedule preparation and negotiation" },
+    { caseId, rateCardId: rcW.id, memberName: "Amy Walsh",    date: "2024-05-22", hours: "40.00", phase: "Document Production",     description: "Document review and privilege assessment — first round production" },
+    { caseId, rateCardId: rcO.id, memberName: "James Oliver", date: "2024-06-18", hours: "18.00", phase: "Document Production",     description: "Responding to Respondent's document requests and disclosure objections" },
+    { caseId, rateCardId: rcW.id, memberName: "Amy Walsh",    date: "2024-06-25", hours: "35.00", phase: "Document Production",     description: "Document classification and agreed disclosure schedule preparation" },
+    // Expert engagement (Jul 2024)
+    { caseId, rateCardId: rcS.id, memberName: "Sarah Chen",   date: "2024-07-10", hours: "10.00", phase: "General Case Management", description: "Marine expert engagement — instruction of Capt. Hendricks and scope discussion" },
+    { caseId, rateCardId: rcO.id, memberName: "James Oliver", date: "2024-07-22", hours: "16.00", phase: "General Case Management", description: "Expert instructions preparation and technical background note" },
+    // Statement of Claim (Aug-Sep 2024)
+    { caseId, rateCardId: rcS.id, memberName: "Sarah Chen",   date: "2024-08-05", hours: "28.00", phase: "Written Submissions",     description: "Drafting Statement of Claim — liability section and breach analysis" },
+    { caseId, rateCardId: rcO.id, memberName: "James Oliver", date: "2024-08-12", hours: "42.00", phase: "Written Submissions",     description: "Research and drafting — causation, damage and quantum analysis" },
+    { caseId, rateCardId: rcW.id, memberName: "Amy Walsh",    date: "2024-08-20", hours: "28.00", phase: "Written Submissions",     description: "Exhibits bundle preparation and factual narrative support" },
+    { caseId, rateCardId: rcS.id, memberName: "Sarah Chen",   date: "2024-09-02", hours: "22.00", phase: "Written Submissions",     description: "Reviewing, revising and finalising Statement of Claim for filing" },
+    { caseId, rateCardId: rcO.id, memberName: "James Oliver", date: "2024-09-08", hours: "32.00", phase: "Written Submissions",     description: "Expert report review and integration into Statement of Claim" },
+    // Post-SOC (Oct-Dec 2024)
+    { caseId, rateCardId: rcS.id, memberName: "Sarah Chen",   date: "2024-10-15", hours: "8.00",  phase: "General Case Management", description: "Post-filing client update and review of Respondent's procedural requests" },
+    { caseId, rateCardId: rcO.id, memberName: "James Oliver", date: "2024-11-08", hours: "14.00", phase: "Document Production",     description: "Reviewing document production objections raised by Respondent" },
+    // Counter-Memorial prep (Jan-Mar 2026)
+    { caseId, rateCardId: rcS.id, memberName: "Sarah Chen",   date: "2026-02-05", hours: "10.00", phase: "Written Submissions",     description: "Strategy session for Counter-Memorial response — liability arguments" },
+    { caseId, rateCardId: rcO.id, memberName: "James Oliver", date: "2026-02-18", hours: "14.00", phase: "Written Submissions",     description: "Preliminary research and outline for Reply Memorial" },
+  ]);
+
+  await db.insert(disbursementsTable).values([
+    { caseId, category: "Expert Fees", amount: "38000.00", currency: "USD", date: "2024-07-15", description: "Capt. R. Hendricks — marine surveyor expert report on vessel condition and damage", party: "Claimant" },
+    { caseId, category: "Technology",  amount: "4200.00",  currency: "USD", date: "2024-05-10", description: "E-disclosure platform fees — document review and production", party: "Claimant" },
+    { caseId, category: "Court Fees",  amount: "1800.00",  currency: "USD", date: "2024-04-20", description: "Court reporting and transcription — Case Management Conference", party: "Claimant" },
   ]);
 }
 
@@ -202,25 +266,68 @@ async function seedCase3() {
     { caseId, exhibitNumber: "R-004", party: "Respondent", description: "Independent Business Valuation Report (Big Four Accounting)", date: "2024-03-15", status: "Filed" },
   ]);
 
-  const [rc1] = await db.insert(rateCardTable).values(
-    { caseId, name: "David Lim", role: "Partner", hourlyRate: "850.00", currency: "SGD", party: "Claimant" }
+  const [rcL] = await db.insert(rateCardTable).values(
+    { caseId, name: "David Lim",   role: "Partner",          hourlyRate: "850.00", currency: "SGD", party: "Claimant" }
   ).returning({ id: rateCardTable.id });
-
-  const [rc2] = await db.insert(rateCardTable).values(
+  const [rcT] = await db.insert(rateCardTable).values(
     { caseId, name: "Michelle Tan", role: "Senior Associate", hourlyRate: "450.00", currency: "SGD", party: "Claimant" }
+  ).returning({ id: rateCardTable.id });
+  const [rcN] = await db.insert(rateCardTable).values(
+    { caseId, name: "Rachel Ng",    role: "Associate",        hourlyRate: "280.00", currency: "SGD", party: "Claimant" }
   ).returning({ id: rateCardTable.id });
 
   await db.insert(timeEntriesTable).values([
-    { caseId, rateCardId: rc1.id, memberName: "David Lim", date: "2024-01-15", hours: "45.50", phase: "Written Submissions", description: "Drafting and revising Statement of Claim" },
-    { caseId, rateCardId: rc2.id, memberName: "Michelle Tan", date: "2024-01-20", hours: "62.00", phase: "Written Submissions", description: "Research, exhibits bundle, and document production" },
-    { caseId, rateCardId: rc1.id, memberName: "David Lim", date: "2024-05-20", hours: "28.00", phase: "Written Submissions", description: "Drafting Reply Memorial" },
-    { caseId, rateCardId: rc1.id, memberName: "David Lim", date: "2024-10-10", hours: "38.50", phase: "Hearing Preparation", description: "Hearing preparation — cross-examination outlines" },
-    { caseId, rateCardId: rc2.id, memberName: "Michelle Tan", date: "2024-10-14", hours: "32.00", phase: "Hearing", description: "Hearing attendance and notes (4 days)" },
+    // Case inception (Aug-Oct 2023)
+    { caseId, rateCardId: rcL.id, memberName: "David Lim",    date: "2023-08-25", hours: "12.00", phase: "General Case Management", description: "Case intake, preliminary assessment of JV dispute — breach and remedy analysis" },
+    { caseId, rateCardId: rcL.id, memberName: "David Lim",    date: "2023-09-15", hours: "8.00",  phase: "General Case Management", description: "Initial client strategy sessions and Singaporean JV law engagement" },
+    { caseId, rateCardId: rcT.id, memberName: "Michelle Tan", date: "2023-09-20", hours: "18.00", phase: "General Case Management", description: "Factual chronology, key documents review, initial exhibits schedule" },
+    { caseId, rateCardId: rcL.id, memberName: "David Lim",    date: "2023-10-12", hours: "6.00",  phase: "General Case Management", description: "Terms of Reference negotiation and signing" },
+    { caseId, rateCardId: rcT.id, memberName: "Michelle Tan", date: "2023-10-18", hours: "10.00", phase: "General Case Management", description: "ToR preparation and initial case management submissions" },
+    // Document production (Nov-Dec 2023)
+    { caseId, rateCardId: rcL.id, memberName: "David Lim",    date: "2023-11-08", hours: "10.00", phase: "Document Production",     description: "Document production requests — Redfern Schedule preparation" },
+    { caseId, rateCardId: rcT.id, memberName: "Michelle Tan", date: "2023-11-15", hours: "30.00", phase: "Document Production",     description: "Document review, privilege log, first-round production schedule" },
+    { caseId, rateCardId: rcN.id, memberName: "Rachel Ng",    date: "2023-11-20", hours: "38.00", phase: "Document Production",     description: "First-pass document review — JV records and board minutes 2020–2022" },
+    { caseId, rateCardId: rcT.id, memberName: "Michelle Tan", date: "2023-12-12", hours: "20.00", phase: "Document Production",     description: "Responding to SingCo document requests and further review rounds" },
+    { caseId, rateCardId: rcN.id, memberName: "Rachel Ng",    date: "2023-12-18", hours: "28.00", phase: "Document Production",     description: "Second-pass review and production of agreed disclosed documents" },
+    // Statement of Claim (Dec 2023 - Jan 2024)
+    { caseId, rateCardId: rcL.id, memberName: "David Lim",    date: "2023-12-08", hours: "22.00", phase: "Written Submissions",     description: "Drafting Statement of Claim — liability analysis and factual matrix" },
+    { caseId, rateCardId: rcT.id, memberName: "Michelle Tan", date: "2023-12-22", hours: "35.00", phase: "Written Submissions",     description: "Research and drafting — breach of SHA and fiduciary duties section" },
+    { caseId, rateCardId: rcL.id, memberName: "David Lim",    date: "2024-01-08", hours: "20.00", phase: "Written Submissions",     description: "Revising SOC — quantum section, expert instructions and remedy analysis" },
+    { caseId, rateCardId: rcT.id, memberName: "Michelle Tan", date: "2024-01-15", hours: "30.00", phase: "Written Submissions",     description: "Exhibits bundle, footnotes and revising SOC draft for filing" },
+    { caseId, rateCardId: rcN.id, memberName: "Rachel Ng",    date: "2024-01-22", hours: "28.00", phase: "Written Submissions",     description: "Exhibits index, SOC footnote verification and filing preparation" },
+    // Reply Memorial (Apr-May 2024)
+    { caseId, rateCardId: rcL.id, memberName: "David Lim",    date: "2024-04-10", hours: "14.00", phase: "Written Submissions",     description: "Analysis of Counter-Memorial, strategy and Reply Memorial structure" },
+    { caseId, rateCardId: rcT.id, memberName: "Michelle Tan", date: "2024-04-18", hours: "22.00", phase: "Written Submissions",     description: "Research for Reply — addressing SingCo's valuation and causation arguments" },
+    { caseId, rateCardId: rcN.id, memberName: "Rachel Ng",    date: "2024-04-25", hours: "16.00", phase: "Written Submissions",     description: "Supporting research and exhibits update for Reply Memorial" },
+    { caseId, rateCardId: rcL.id, memberName: "David Lim",    date: "2024-05-08", hours: "22.00", phase: "Written Submissions",     description: "Drafting and revising Reply Memorial for filing" },
+    { caseId, rateCardId: rcT.id, memberName: "Michelle Tan", date: "2024-05-15", hours: "24.00", phase: "Written Submissions",     description: "Revising Reply and coordinating expert report on loss of profits" },
+    // Hearing preparation (Sep-Oct 2024)
+    { caseId, rateCardId: rcL.id, memberName: "David Lim",    date: "2024-09-10", hours: "20.00", phase: "Hearing Preparation",     description: "Cross-examination outlines for SingCo witnesses and expert deponents" },
+    { caseId, rateCardId: rcT.id, memberName: "Michelle Tan", date: "2024-09-18", hours: "20.00", phase: "Hearing Preparation",     description: "Hearing bundle preparation and witness statement review" },
+    { caseId, rateCardId: rcN.id, memberName: "Rachel Ng",    date: "2024-09-25", hours: "18.00", phase: "Hearing Preparation",     description: "Hearing bundle preparation — tabbing, indexing and agreed bundle index" },
+    { caseId, rateCardId: rcL.id, memberName: "David Lim",    date: "2024-10-02", hours: "18.00", phase: "Hearing Preparation",     description: "Pre-hearing moot, finalising opening submissions and time allocation" },
+    { caseId, rateCardId: rcT.id, memberName: "Michelle Tan", date: "2024-10-05", hours: "12.00", phase: "Hearing Preparation",     description: "Pre-hearing logistics and agreed hearing bundle finalisation" },
+    // Merits Hearing (Oct 14-17, 2024)
+    { caseId, rateCardId: rcL.id, memberName: "David Lim",    date: "2024-10-14", hours: "32.00", phase: "Hearing",                 description: "Merits hearing attendance and advocacy — Days 1 to 4 (4 × 8h)" },
+    { caseId, rateCardId: rcT.id, memberName: "Michelle Tan", date: "2024-10-14", hours: "32.00", phase: "Hearing",                 description: "Hearing attendance, real-time notes and document retrieval — Days 1 to 4" },
+    { caseId, rateCardId: rcN.id, memberName: "Rachel Ng",    date: "2024-10-14", hours: "24.00", phase: "Hearing",                 description: "Hearing support — real-time exhibit management and daily notes" },
+    // Post-hearing briefs (Nov-Dec 2024)
+    { caseId, rateCardId: rcL.id, memberName: "David Lim",    date: "2024-11-12", hours: "14.00", phase: "Written Submissions",     description: "Drafting post-hearing brief — liability and causation section" },
+    { caseId, rateCardId: rcT.id, memberName: "Michelle Tan", date: "2024-11-20", hours: "20.00", phase: "Written Submissions",     description: "Research and drafting — quantum section of post-hearing brief" },
+    { caseId, rateCardId: rcL.id, memberName: "David Lim",    date: "2024-12-03", hours: "12.00", phase: "Written Submissions",     description: "Revising and finalising post-hearing brief for submission" },
+    { caseId, rateCardId: rcT.id, memberName: "Michelle Tan", date: "2024-12-10", hours: "14.00", phase: "Written Submissions",     description: "Final revisions to PHB and filing preparation" },
+    // Costs submissions (Jan-Apr 2026)
+    { caseId, rateCardId: rcL.id, memberName: "David Lim",    date: "2026-02-12", hours: "10.00", phase: "General Case Management", description: "Costs schedule preparation and legal fees analysis for costs submissions" },
+    { caseId, rateCardId: rcT.id, memberName: "Michelle Tan", date: "2026-02-20", hours: "12.00", phase: "General Case Management", description: "Cost schedule — time entry verification and phase categorisation" },
+    { caseId, rateCardId: rcL.id, memberName: "David Lim",    date: "2026-03-18", hours: "8.00",  phase: "Written Submissions",     description: "Drafting costs submissions — legal fees and disbursements section" },
+    { caseId, rateCardId: rcT.id, memberName: "Michelle Tan", date: "2026-03-25", hours: "10.00", phase: "Written Submissions",     description: "Revising costs submissions and disbursement schedule" },
   ]);
 
   await db.insert(disbursementsTable).values([
-    { caseId, category: "Translation", amount: "4200.00", currency: "SGD", date: "2024-01-25", description: "Translation of JV documentation from Mandarin", party: "Claimant" },
-    { caseId, category: "Expert Fees", amount: "52000.00", currency: "SGD", date: "2024-02-01", description: "Prof. Reyes — expert report on loss of profits", party: "Claimant" },
-    { caseId, category: "Travel", amount: "3840.00", currency: "SGD", date: "2024-10-12", description: "Economy flights and accommodation — Singapore hearing", party: "Claimant" },
+    { caseId, category: "Translation", amount: "4200.00",  currency: "SGD", date: "2024-01-25", description: "Translation of JV documentation and board minutes from Mandarin", party: "Claimant" },
+    { caseId, category: "Expert Fees", amount: "52000.00", currency: "SGD", date: "2024-02-01", description: "Prof. E. Reyes (CPA) — expert report on loss of profits and quantum analysis", party: "Claimant" },
+    { caseId, category: "Venue",       amount: "12000.00", currency: "SGD", date: "2024-10-10", description: "Maxwell Chambers — hearing room hire, 4 days (14–17 October 2024)", party: "Claimant" },
+    { caseId, category: "Travel",      amount: "3840.00",  currency: "SGD", date: "2024-10-12", description: "Economy return flights and accommodation — Singapore merits hearing", party: "Claimant" },
+    { caseId, category: "Technology",  amount: "2800.00",  currency: "SGD", date: "2024-10-14", description: "Transcript and e-filing services — merits hearing 4 days", party: "Claimant" },
   ]);
 }
