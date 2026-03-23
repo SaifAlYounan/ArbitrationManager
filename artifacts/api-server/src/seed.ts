@@ -15,27 +15,41 @@ const DEMO_REFS = [
 
 export async function seedDemoCases() {
   try {
-    // Check if demo cases already exist
     const existing = await db
-      .select({ caseReference: casesTable.caseReference })
+      .select({ id: casesTable.id, caseReference: casesTable.caseReference })
       .from(casesTable)
       .where(inArray(casesTable.caseReference, DEMO_REFS));
 
-    const existingRefs = new Set(existing.map((r) => r.caseReference));
-    const missing = DEMO_REFS.filter((r) => !existingRefs.has(r));
+    const existingMap = new Map(existing.map((r) => [r.caseReference, r.id]));
+    const missing = DEMO_REFS.filter((r) => !existingMap.has(r));
 
-    if (missing.length === 0) {
-      logger.info("Demo cases already present — skipping seed");
-      return;
+    // Create case structure for any missing cases
+    if (missing.length > 0) {
+      logger.info({ missing }, "Seeding missing demo cases");
+      for (const ref of missing) {
+        if (ref === "ICC/2025/ARB-4421") await seedCase1Structure();
+        if (ref === "ICC/2024/ARB-8871") await seedCase2Structure();
+        if (ref === "ICC/2023/ARB-2209") await seedCase3Structure();
+      }
     }
 
-    logger.info({ missing }, "Seeding demo cases");
+    // Re-fetch all three IDs (including newly created ones)
+    const all = await db
+      .select({ id: casesTable.id, caseReference: casesTable.caseReference })
+      .from(casesTable)
+      .where(inArray(casesTable.caseReference, DEMO_REFS));
 
-    for (const ref of missing) {
-      if (ref === "ICC/2025/ARB-4421") await seedCase1();
-      if (ref === "ICC/2024/ARB-8871") await seedCase2();
-      if (ref === "ICC/2023/ARB-2209") await seedCase3();
-    }
+    const allMap = new Map(all.map((r) => [r.caseReference, r.id]));
+
+    // Always refresh costs data so every deploy stays consistent
+    logger.info("Refreshing demo costs data");
+    const id1 = allMap.get("ICC/2025/ARB-4421")!;
+    const id2 = allMap.get("ICC/2024/ARB-8871")!;
+    const id3 = allMap.get("ICC/2023/ARB-2209")!;
+
+    await seedCosts1(id1);
+    await seedCosts2(id2);
+    await seedCosts3(id3);
 
     logger.info("Demo seed complete");
   } catch (err) {
@@ -43,10 +57,20 @@ export async function seedDemoCases() {
   }
 }
 
-/* ──────────────────────────────────────────────
-   CASE 1 — Nexum Energy (early-stage)
-────────────────────────────────────────────── */
-async function seedCase1() {
+/* ──────────────────────────────────────────────────────────────
+   Helpers: clear and re-seed costs for a case
+────────────────────────────────────────────────────────────── */
+async function clearCosts(caseId: number) {
+  await db.delete(timeEntriesTable).where(eq(timeEntriesTable.caseId, caseId));
+  await db.delete(disbursementsTable).where(eq(disbursementsTable.caseId, caseId));
+  await db.delete(rateCardTable).where(eq(rateCardTable.caseId, caseId));
+}
+
+/* ──────────────────────────────────────────────────────────────
+   CASE 1 — Nexum Energy (early-stage, Geneva, USD)
+   Filed Nov 2024. Pre-ToR. CMC upcoming Apr 2026.
+────────────────────────────────────────────────────────────── */
+async function seedCase1Structure() {
   const [c] = await db.insert(casesTable).values({
     caseReference: "ICC/2025/ARB-4421",
     caseName: "Nexum Energy GmbH v. Republic of Latvinia",
@@ -77,6 +101,10 @@ async function seedCase1() {
     { caseId, exhibitNumber: "C-001", party: "Claimant", description: "Energy Supply and Investment Agreement dated 12 March 2021", date: "2024-11-15", status: "Filed" },
     { caseId, exhibitNumber: "C-002", party: "Claimant", description: "Notice of Dispute and Request for Arbitration dated 30 October 2024", date: "2024-11-01", status: "Filed" },
   ]);
+}
+
+async function seedCosts1(caseId: number) {
+  await clearCosts(caseId);
 
   const [rcF] = await db.insert(rateCardTable).values(
     { caseId, name: "Alexandra Fischer", role: "Partner", hourlyRate: "820.00", currency: "USD", party: "Claimant" }
@@ -108,10 +136,11 @@ async function seedCase1() {
   ]);
 }
 
-/* ──────────────────────────────────────────────
-   CASE 2 — Global Maritime (mid-stage)
-────────────────────────────────────────────── */
-async function seedCase2() {
+/* ──────────────────────────────────────────────────────────────
+   CASE 2 — Global Maritime (mid-stage, London, USD)
+   Filed Mar 2024. SOC filed Sep 2024. Counter-Memorial pending.
+────────────────────────────────────────────────────────────── */
+async function seedCase2Structure() {
   const [c] = await db.insert(casesTable).values({
     caseReference: "ICC/2024/ARB-8871",
     caseName: "Global Maritime Holdings Ltd v. Zenith Shipping SA",
@@ -128,22 +157,22 @@ async function seedCase2() {
   const caseId = c.id;
 
   await db.insert(tribunalMembersTable).values([
-    { caseId, name: "Sir James Worthington QC", role: "President", email: "j.worthington@chambers-london.uk", timeZone: "Europe/London" },
-    { caseId, name: "Prof. Claire Dubois", role: "Co-arbitrator", email: "c.dubois@icc-paris.fr", timeZone: "Europe/Paris" },
-    { caseId, name: "Dr. Hans Berger", role: "Co-arbitrator", email: "h.berger@arb-institute.de", timeZone: "Europe/Berlin" },
+    { caseId, name: "Sir James Worthington QC", role: "President",      email: "j.worthington@chambers-london.uk", timeZone: "Europe/London" },
+    { caseId, name: "Prof. Claire Dubois",       role: "Co-arbitrator", email: "c.dubois@icc-paris.fr",           timeZone: "Europe/Paris" },
+    { caseId, name: "Dr. Hans Berger",           role: "Co-arbitrator", email: "h.berger@arb-institute.de",       timeZone: "Europe/Berlin" },
   ]);
 
   await db.insert(representativesTable).values([
-    { caseId, name: "Sarah Chen", firm: "Clyde & Partners LLP", role: "Lead Counsel", party: "Claimant", email: "s.chen@clydeandpartners.com", timeZone: "Europe/London" },
-    { caseId, name: "Marco Pietri", firm: "Greenberg Traurig SCS", role: "Lead Counsel", party: "Respondent", email: "m.pietri@gtlaw.fr", timeZone: "Europe/Paris" },
+    { caseId, name: "Sarah Chen",  firm: "Clyde & Partners LLP",    role: "Lead Counsel", party: "Claimant",   email: "s.chen@clydeandpartners.com", timeZone: "Europe/London" },
+    { caseId, name: "Marco Pietri", firm: "Greenberg Traurig SCS", role: "Lead Counsel", party: "Respondent", email: "m.pietri@gtlaw.fr",            timeZone: "Europe/Paris" },
   ]);
 
   await db.insert(deadlinesTable).values([
-    { caseId, description: "Terms of Reference signed", responsibleParty: "All", dueDate: "2024-05-10", status: "Completed" },
-    { caseId, description: "Claimant Memorial (Statement of Claim)", responsibleParty: "Claimant", dueDate: "2024-09-30", status: "Completed" },
-    { caseId, description: "Respondent Counter-Memorial", responsibleParty: "Respondent", dueDate: "2026-04-15", status: "Pending" },
-    { caseId, description: "Claimant Reply Memorial", responsibleParty: "Claimant", dueDate: "2026-07-10", status: "Pending" },
-    { caseId, description: "Respondent Rejoinder", responsibleParty: "Respondent", dueDate: "2026-09-30", status: "Pending" },
+    { caseId, description: "Terms of Reference signed",              responsibleParty: "All",       dueDate: "2024-05-10", status: "Completed" },
+    { caseId, description: "Claimant Memorial (Statement of Claim)", responsibleParty: "Claimant",  dueDate: "2024-09-30", status: "Completed" },
+    { caseId, description: "Respondent Counter-Memorial",            responsibleParty: "Respondent",dueDate: "2026-04-15", status: "Pending" },
+    { caseId, description: "Claimant Reply Memorial",                responsibleParty: "Claimant",  dueDate: "2026-07-10", status: "Pending" },
+    { caseId, description: "Respondent Rejoinder",                   responsibleParty: "Respondent",dueDate: "2026-09-30", status: "Pending" },
   ]);
 
   await db.insert(proceduralOrdersTable).values([
@@ -151,12 +180,16 @@ async function seedCase2() {
   ]);
 
   await db.insert(exhibitsTable).values([
-    { caseId, exhibitNumber: "C-001", party: "Claimant", description: "Charter Party Agreement dated 5 January 2023", date: "2024-04-10", status: "Filed" },
-    { caseId, exhibitNumber: "C-002", party: "Claimant", description: "Vessel Inspection Report and Damage Assessment", date: "2024-04-10", status: "Filed" },
-    { caseId, exhibitNumber: "C-003", party: "Claimant", description: "Correspondence re. Force Majeure Notice (March 2023)", date: "2024-04-15", status: "Agreed" },
-    { caseId, exhibitNumber: "R-001", party: "Respondent", description: "Counter-Notice of Alleged Breach dated 28 March 2023", date: "2024-06-20", status: "Filed" },
-    { caseId, exhibitNumber: "R-002", party: "Respondent", description: "Surveyor Expert Report on Vessel Condition", date: "2024-06-20", status: "Disputed" },
+    { caseId, exhibitNumber: "C-001", party: "Claimant",   description: "Charter Party Agreement dated 5 January 2023",                date: "2024-04-10", status: "Filed" },
+    { caseId, exhibitNumber: "C-002", party: "Claimant",   description: "Vessel Inspection Report and Damage Assessment",              date: "2024-04-10", status: "Filed" },
+    { caseId, exhibitNumber: "C-003", party: "Claimant",   description: "Correspondence re. Force Majeure Notice (March 2023)",        date: "2024-04-15", status: "Agreed" },
+    { caseId, exhibitNumber: "R-001", party: "Respondent", description: "Counter-Notice of Alleged Breach dated 28 March 2023",        date: "2024-06-20", status: "Filed" },
+    { caseId, exhibitNumber: "R-002", party: "Respondent", description: "Surveyor Expert Report on Vessel Condition",                   date: "2024-06-20", status: "Disputed" },
   ]);
+}
+
+async function seedCosts2(caseId: number) {
+  await clearCosts(caseId);
 
   const [rcS] = await db.insert(rateCardTable).values(
     { caseId, name: "Sarah Chen",   role: "Partner",          hourlyRate: "750.00", currency: "USD", party: "Claimant" }
@@ -199,15 +232,16 @@ async function seedCase2() {
 
   await db.insert(disbursementsTable).values([
     { caseId, category: "Expert Fees", amount: "38000.00", currency: "USD", date: "2024-07-15", description: "Capt. R. Hendricks — marine surveyor expert report on vessel condition and damage", party: "Claimant" },
-    { caseId, category: "Technology",  amount: "4200.00",  currency: "USD", date: "2024-05-10", description: "E-disclosure platform fees — document review and production", party: "Claimant" },
-    { caseId, category: "Court Fees",  amount: "1800.00",  currency: "USD", date: "2024-04-20", description: "Court reporting and transcription — Case Management Conference", party: "Claimant" },
+    { caseId, category: "Technology",  amount: "4200.00",  currency: "USD", date: "2024-05-10", description: "E-disclosure platform fees — document review and production",                       party: "Claimant" },
+    { caseId, category: "Court Fees",  amount: "1800.00",  currency: "USD", date: "2024-04-20", description: "Court reporting and transcription — Case Management Conference",                    party: "Claimant" },
   ]);
 }
 
-/* ──────────────────────────────────────────────
-   CASE 3 — Pacific Ventures (late-stage)
-────────────────────────────────────────────── */
-async function seedCase3() {
+/* ──────────────────────────────────────────────────────────────
+   CASE 3 — Pacific Ventures (late-stage, Singapore, SGD)
+   Filed Aug 2023. Hearing Oct 2024. Now at costs submissions.
+────────────────────────────────────────────────────────────── */
+async function seedCase3Structure() {
   const [c] = await db.insert(casesTable).values({
     caseReference: "ICC/2023/ARB-2209",
     caseName: "Pacific Ventures Corp v. SingCo International Pte Ltd",
@@ -224,28 +258,28 @@ async function seedCase3() {
   const caseId = c.id;
 
   await db.insert(tribunalMembersTable).values([
-    { caseId, name: "Dr. Josephine Tan SC", role: "President", email: "j.tan@maxwell-chambers.sg", timeZone: "Asia/Singapore" },
-    { caseId, name: "Mr. William Park", role: "Co-arbitrator", email: "w.park@klgates.com", timeZone: "Asia/Seoul" },
-    { caseId, name: "Prof. Lucia Ferraro", role: "Co-arbitrator", email: "l.ferraro@unige.it", timeZone: "Europe/Rome" },
+    { caseId, name: "Dr. Josephine Tan SC", role: "President",      email: "j.tan@maxwell-chambers.sg", timeZone: "Asia/Singapore" },
+    { caseId, name: "Mr. William Park",     role: "Co-arbitrator",  email: "w.park@klgates.com",        timeZone: "Asia/Seoul" },
+    { caseId, name: "Prof. Lucia Ferraro",  role: "Co-arbitrator",  email: "l.ferraro@unige.it",        timeZone: "Europe/Rome" },
   ]);
 
   await db.insert(representativesTable).values([
-    { caseId, name: "David Lim", firm: "Rajah & Tann Singapore LLP", role: "Lead Counsel", party: "Claimant", email: "d.lim@rajahtann.com", timeZone: "Asia/Singapore" },
-    { caseId, name: "Priya Sharma", firm: "WongPartnership LLP", role: "Lead Counsel", party: "Respondent", email: "p.sharma@wongpartnership.com", timeZone: "Asia/Singapore" },
+    { caseId, name: "David Lim",    firm: "Rajah & Tann Singapore LLP", role: "Lead Counsel", party: "Claimant",   email: "d.lim@rajahtann.com",        timeZone: "Asia/Singapore" },
+    { caseId, name: "Priya Sharma", firm: "WongPartnership LLP",        role: "Lead Counsel", party: "Respondent", email: "p.sharma@wongpartnership.com", timeZone: "Asia/Singapore" },
   ]);
 
   await db.insert(deadlinesTable).values([
-    { caseId, description: "Terms of Reference signed", responsibleParty: "All", dueDate: "2023-10-20", status: "Completed" },
-    { caseId, description: "Document Production Round 1", responsibleParty: "All", dueDate: "2023-12-15", status: "Completed" },
-    { caseId, description: "Claimant Memorial (Statement of Claim)", responsibleParty: "Claimant", dueDate: "2024-01-31", status: "Completed" },
-    { caseId, description: "Respondent Counter-Memorial", responsibleParty: "Respondent", dueDate: "2024-03-31", status: "Completed" },
-    { caseId, description: "Claimant Reply", responsibleParty: "Claimant", dueDate: "2024-05-31", status: "Completed" },
-    { caseId, description: "Respondent Rejoinder", responsibleParty: "Respondent", dueDate: "2024-07-15", status: "Completed" },
-    { caseId, description: "Pre-Hearing Submissions", responsibleParty: "All", dueDate: "2024-09-01", status: "Completed" },
-    { caseId, description: "Merits Hearing (Singapore, 4 days)", responsibleParty: "All", dueDate: "2024-10-14", status: "Completed" },
-    { caseId, description: "Post-Hearing Briefs", responsibleParty: "All", dueDate: "2024-12-02", status: "Completed" },
-    { caseId, description: "Costs Submissions — Claimant", responsibleParty: "Claimant", dueDate: "2026-04-08", status: "Pending" },
-    { caseId, description: "Costs Submissions — Respondent", responsibleParty: "Respondent", dueDate: "2026-04-30", status: "Pending" },
+    { caseId, description: "Terms of Reference signed",              responsibleParty: "All",       dueDate: "2023-10-20", status: "Completed" },
+    { caseId, description: "Document Production Round 1",            responsibleParty: "All",       dueDate: "2023-12-15", status: "Completed" },
+    { caseId, description: "Claimant Memorial (Statement of Claim)", responsibleParty: "Claimant",  dueDate: "2024-01-31", status: "Completed" },
+    { caseId, description: "Respondent Counter-Memorial",            responsibleParty: "Respondent",dueDate: "2024-03-31", status: "Completed" },
+    { caseId, description: "Claimant Reply",                         responsibleParty: "Claimant",  dueDate: "2024-05-31", status: "Completed" },
+    { caseId, description: "Respondent Rejoinder",                   responsibleParty: "Respondent",dueDate: "2024-07-15", status: "Completed" },
+    { caseId, description: "Pre-Hearing Submissions",                responsibleParty: "All",       dueDate: "2024-09-01", status: "Completed" },
+    { caseId, description: "Merits Hearing (Singapore, 4 days)",     responsibleParty: "All",       dueDate: "2024-10-14", status: "Completed" },
+    { caseId, description: "Post-Hearing Briefs",                    responsibleParty: "All",       dueDate: "2024-12-02", status: "Completed" },
+    { caseId, description: "Costs Submissions — Claimant",           responsibleParty: "Claimant",  dueDate: "2026-04-08", status: "Pending" },
+    { caseId, description: "Costs Submissions — Respondent",         responsibleParty: "Respondent",dueDate: "2026-04-30", status: "Pending" },
   ]);
 
   await db.insert(proceduralOrdersTable).values([
@@ -255,19 +289,23 @@ async function seedCase3() {
   ]);
 
   await db.insert(exhibitsTable).values([
-    { caseId, exhibitNumber: "C-001", party: "Claimant", description: "Joint Venture Agreement dated 14 February 2020", date: "2023-10-05", status: "Agreed" },
-    { caseId, exhibitNumber: "C-002", party: "Claimant", description: "Shareholders Agreement and Amendments (2020–2022)", date: "2023-10-05", status: "Agreed" },
-    { caseId, exhibitNumber: "C-003", party: "Claimant", description: "Board Minutes — February 2022 Extraordinary General Meeting", date: "2023-10-05", status: "Disputed" },
-    { caseId, exhibitNumber: "C-004", party: "Claimant", description: "Claimant Expert Report on Loss of Profits (Prof. Reyes, CPA)", date: "2024-01-15", status: "Filed" },
-    { caseId, exhibitNumber: "C-005", party: "Claimant", description: "Correspondence between parties regarding buyout offer (Jan–Apr 2023)", date: "2024-01-20", status: "Filed" },
-    { caseId, exhibitNumber: "R-001", party: "Respondent", description: "Counter Board Minutes — February 2022 EGM (annotated)", date: "2024-03-10", status: "Disputed" },
-    { caseId, exhibitNumber: "R-002", party: "Respondent", description: "Respondent Expert Report on Valuation (Dr. Kwon, CFA)", date: "2024-03-10", status: "Filed" },
-    { caseId, exhibitNumber: "R-003", party: "Respondent", description: "Audited Financial Statements of the JV Company 2019–2022", date: "2024-03-10", status: "Agreed" },
-    { caseId, exhibitNumber: "R-004", party: "Respondent", description: "Independent Business Valuation Report (Big Four Accounting)", date: "2024-03-15", status: "Filed" },
+    { caseId, exhibitNumber: "C-001", party: "Claimant",   description: "Joint Venture Agreement dated 14 February 2020",                    date: "2023-10-05", status: "Agreed" },
+    { caseId, exhibitNumber: "C-002", party: "Claimant",   description: "Shareholders Agreement and Amendments (2020–2022)",                 date: "2023-10-05", status: "Agreed" },
+    { caseId, exhibitNumber: "C-003", party: "Claimant",   description: "Board Minutes — February 2022 Extraordinary General Meeting",       date: "2023-10-05", status: "Disputed" },
+    { caseId, exhibitNumber: "C-004", party: "Claimant",   description: "Claimant Expert Report on Loss of Profits (Prof. Reyes, CPA)",      date: "2024-01-15", status: "Filed" },
+    { caseId, exhibitNumber: "C-005", party: "Claimant",   description: "Correspondence between parties regarding buyout offer (Jan–Apr 2023)", date: "2024-01-20", status: "Filed" },
+    { caseId, exhibitNumber: "R-001", party: "Respondent", description: "Counter Board Minutes — February 2022 EGM (annotated)",             date: "2024-03-10", status: "Disputed" },
+    { caseId, exhibitNumber: "R-002", party: "Respondent", description: "Respondent Expert Report on Valuation (Dr. Kwon, CFA)",             date: "2024-03-10", status: "Filed" },
+    { caseId, exhibitNumber: "R-003", party: "Respondent", description: "Audited Financial Statements of the JV Company 2019–2022",          date: "2024-03-10", status: "Agreed" },
+    { caseId, exhibitNumber: "R-004", party: "Respondent", description: "Independent Business Valuation Report (Big Four Accounting)",       date: "2024-03-15", status: "Filed" },
   ]);
+}
+
+async function seedCosts3(caseId: number) {
+  await clearCosts(caseId);
 
   const [rcL] = await db.insert(rateCardTable).values(
-    { caseId, name: "David Lim",   role: "Partner",          hourlyRate: "850.00", currency: "SGD", party: "Claimant" }
+    { caseId, name: "David Lim",    role: "Partner",          hourlyRate: "850.00", currency: "SGD", party: "Claimant" }
   ).returning({ id: rateCardTable.id });
   const [rcT] = await db.insert(rateCardTable).values(
     { caseId, name: "Michelle Tan", role: "Senior Associate", hourlyRate: "450.00", currency: "SGD", party: "Claimant" }
@@ -307,7 +345,7 @@ async function seedCase3() {
     { caseId, rateCardId: rcN.id, memberName: "Rachel Ng",    date: "2024-09-25", hours: "18.00", phase: "Hearing Preparation",     description: "Hearing bundle preparation — tabbing, indexing and agreed bundle index" },
     { caseId, rateCardId: rcL.id, memberName: "David Lim",    date: "2024-10-02", hours: "18.00", phase: "Hearing Preparation",     description: "Pre-hearing moot, finalising opening submissions and time allocation" },
     { caseId, rateCardId: rcT.id, memberName: "Michelle Tan", date: "2024-10-05", hours: "12.00", phase: "Hearing Preparation",     description: "Pre-hearing logistics and agreed hearing bundle finalisation" },
-    // Merits Hearing (Oct 14-17, 2024)
+    // Merits Hearing (Oct 14-17, 2024, 4 days)
     { caseId, rateCardId: rcL.id, memberName: "David Lim",    date: "2024-10-14", hours: "32.00", phase: "Hearing",                 description: "Merits hearing attendance and advocacy — Days 1 to 4 (4 × 8h)" },
     { caseId, rateCardId: rcT.id, memberName: "Michelle Tan", date: "2024-10-14", hours: "32.00", phase: "Hearing",                 description: "Hearing attendance, real-time notes and document retrieval — Days 1 to 4" },
     { caseId, rateCardId: rcN.id, memberName: "Rachel Ng",    date: "2024-10-14", hours: "24.00", phase: "Hearing",                 description: "Hearing support — real-time exhibit management and daily notes" },
@@ -324,10 +362,10 @@ async function seedCase3() {
   ]);
 
   await db.insert(disbursementsTable).values([
-    { caseId, category: "Translation", amount: "4200.00",  currency: "SGD", date: "2024-01-25", description: "Translation of JV documentation and board minutes from Mandarin", party: "Claimant" },
-    { caseId, category: "Expert Fees", amount: "52000.00", currency: "SGD", date: "2024-02-01", description: "Prof. E. Reyes (CPA) — expert report on loss of profits and quantum analysis", party: "Claimant" },
-    { caseId, category: "Venue",       amount: "12000.00", currency: "SGD", date: "2024-10-10", description: "Maxwell Chambers — hearing room hire, 4 days (14–17 October 2024)", party: "Claimant" },
-    { caseId, category: "Travel",      amount: "3840.00",  currency: "SGD", date: "2024-10-12", description: "Economy return flights and accommodation — Singapore merits hearing", party: "Claimant" },
-    { caseId, category: "Technology",  amount: "2800.00",  currency: "SGD", date: "2024-10-14", description: "Transcript and e-filing services — merits hearing 4 days", party: "Claimant" },
+    { caseId, category: "Translation", amount: "4200.00",  currency: "SGD", date: "2024-01-25", description: "Translation of JV documentation and board minutes from Mandarin",    party: "Claimant" },
+    { caseId, category: "Expert Fees", amount: "52000.00", currency: "SGD", date: "2024-02-01", description: "Prof. E. Reyes (CPA) — expert report on loss of profits and quantum", party: "Claimant" },
+    { caseId, category: "Venue",       amount: "12000.00", currency: "SGD", date: "2024-10-10", description: "Maxwell Chambers — hearing room hire, 4 days (14–17 October 2024)",  party: "Claimant" },
+    { caseId, category: "Travel",      amount: "3840.00",  currency: "SGD", date: "2024-10-12", description: "Economy return flights and accommodation — Singapore merits hearing",  party: "Claimant" },
+    { caseId, category: "Technology",  amount: "2800.00",  currency: "SGD", date: "2024-10-14", description: "Transcript and e-filing services — merits hearing 4 days",            party: "Claimant" },
   ]);
 }
