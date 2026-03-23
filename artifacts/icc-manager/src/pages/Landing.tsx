@@ -13,6 +13,10 @@ import {
   Globe,
   Shield,
   Clock,
+  Sparkles,
+  Upload,
+  ScanText,
+  SquareCheck,
 } from "lucide-react";
 
 const FEATURES = [
@@ -178,6 +182,195 @@ export default function Landing() {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── Smart Import Feature ── */}
+      <section className="py-24 bg-[#0F2547] text-white relative overflow-hidden">
+        {/* background glow */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 right-0 w-[500px] h-[500px] rounded-full bg-blue-500/10 blur-3xl translate-x-1/3 -translate-y-1/2" />
+          <div className="absolute bottom-0 left-1/4 w-[300px] h-[300px] rounded-full bg-indigo-400/10 blur-3xl" />
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
+          {/* Label + headline */}
+          <div className="text-center mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-sm text-blue-200 mb-6">
+                <Sparkles className="w-3.5 h-3.5 text-blue-300" />
+                AI-Powered · Flagship Feature
+              </div>
+              <h2 className="text-3xl lg:text-5xl font-display font-bold mb-5 leading-tight">
+                Drop a document.<br />
+                <span className="text-blue-300">Your case updates itself.</span>
+              </h2>
+              <p className="text-blue-100 text-lg max-w-2xl mx-auto leading-relaxed">
+                Smart Import reads any arbitration document — procedural orders, memorials, correspondence —
+                and extracts every exhibit, deadline, and procedural direction directly into your case record.
+                No copy-pasting. No missed items.
+              </p>
+            </motion.div>
+          </div>
+
+          {/* 3-step flow */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
+            {[
+              {
+                icon: Upload,
+                step: "01",
+                title: "Upload the document",
+                desc: "Drop any PDF, Word, or text file — a Procedural Order, a Request for Arbitration, a timetable letter. Multiple files at once.",
+                color: "bg-blue-500/20 text-blue-300",
+              },
+              {
+                icon: ScanText,
+                step: "02",
+                title: "Claude reads it",
+                desc: "Claude Sonnet analyses the document with arbitration expertise — identifying parties, dates, obligations, and procedural directions.",
+                color: "bg-indigo-500/20 text-indigo-300",
+              },
+              {
+                icon: SquareCheck,
+                step: "03",
+                title: "Review and apply",
+                desc: "Every proposed exhibit, deadline, and PO is shown for your review. Check what you want, uncheck what you don't, and apply in one click.",
+                color: "bg-emerald-500/20 text-emerald-300",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.step}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.12, duration: 0.5 }}
+                className="bg-white/8 border border-white/12 rounded-2xl p-7 relative"
+              >
+                <div className="flex items-center gap-3 mb-5">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${item.color}`}>
+                    <item.icon className="w-5 h-5" />
+                  </div>
+                  <span className="font-mono text-xs text-white/30 font-bold tracking-widest">{item.step}</span>
+                </div>
+                <h3 className="font-display font-semibold text-white text-lg mb-2">{item.title}</h3>
+                <p className="text-blue-200 text-sm leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* What gets extracted — visual mock */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="bg-white/5 border border-white/10 rounded-3xl p-8 lg:p-10"
+          >
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-blue-300" />
+              </div>
+              <div>
+                <p className="text-xs text-white/40 font-mono uppercase tracking-widest">After analysis</p>
+                <p className="text-sm font-semibold text-white">ICC-Sample-Procedural-Order-2.txt</p>
+              </div>
+              <div className="ml-auto">
+                <span className="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/20 px-3 py-1 rounded-full font-medium">16 items found</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+              {/* Exhibits */}
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 bg-blue-500/10 border-b border-blue-500/20">
+                  <FolderOpen className="w-4 h-4 text-blue-300" />
+                  <span className="text-sm font-semibold text-blue-200">Exhibits</span>
+                  <span className="ml-auto text-xs bg-blue-500/30 text-blue-200 px-2 py-0.5 rounded-full">5</span>
+                </div>
+                <div className="divide-y divide-blue-500/10">
+                  {[
+                    { ref: "C-7", label: "Internal board memorandum re. disputed transaction", party: "Claimant" },
+                    { ref: "C-8", label: "PwC independent audit report", party: "Claimant" },
+                    { ref: "C-9", label: "Cure period correspondence (Oct–Dec 2023)", party: "Claimant" },
+                    { ref: "R-5", label: "Regulatory approval file and authority communications", party: "Respondent" },
+                    { ref: "R-6", label: "Financial model and projections at time of agreement", party: "Respondent" },
+                  ].map((ex) => (
+                    <div key={ex.ref} className="flex items-start gap-2.5 px-4 py-2.5">
+                      <div className="w-4 h-4 mt-0.5 rounded border-2 border-blue-400/60 bg-[#0F2547] flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="w-2.5 h-2.5 text-blue-300" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-xs font-mono text-blue-300 mr-1">{ex.ref}</span>
+                        <span className="text-xs text-blue-100 leading-snug">{ex.label}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Deadlines */}
+              <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 bg-orange-500/10 border-b border-orange-500/20">
+                  <CalendarDays className="w-4 h-4 text-orange-300" />
+                  <span className="text-sm font-semibold text-orange-200">Deadlines</span>
+                  <span className="ml-auto text-xs bg-orange-500/30 text-orange-200 px-2 py-0.5 rounded-full">9</span>
+                </div>
+                <div className="divide-y divide-orange-500/10">
+                  {[
+                    { label: "Document production completed", date: "28 Feb 2026", party: "All" },
+                    { label: "Tribunal ruling on contested requests", date: "15 Mar 2026", party: "Tribunal" },
+                    { label: "Claimant Reply Memorial", date: "15 Apr 2026", party: "Claimant" },
+                    { label: "Simultaneous expert reports", date: "30 Jun 2026", party: "All" },
+                    { label: "Pre-Hearing Submissions", date: "30 Sep 2026", party: "All" },
+                    { label: "Merits Hearing (5 days)", date: "26 Oct 2026", party: "All" },
+                  ].map((dl) => (
+                    <div key={dl.label} className="flex items-start gap-2.5 px-4 py-2.5">
+                      <div className="w-4 h-4 mt-0.5 rounded border-2 border-orange-400/60 bg-[#0F2547] flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="w-2.5 h-2.5 text-orange-300" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs text-orange-100 leading-snug">{dl.label}</p>
+                        <p className="text-xs text-orange-300/70 mt-0.5">{dl.date} · {dl.party}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Procedural Orders */}
+              <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 bg-purple-500/10 border-b border-purple-500/20">
+                  <FileText className="w-4 h-4 text-purple-300" />
+                  <span className="text-sm font-semibold text-purple-200">Procedural Orders</span>
+                  <span className="ml-auto text-xs bg-purple-500/30 text-purple-200 px-2 py-0.5 rounded-full">1</span>
+                </div>
+                <div className="divide-y divide-purple-500/10">
+                  <div className="flex items-start gap-2.5 px-4 py-2.5">
+                    <div className="w-4 h-4 mt-0.5 rounded border-2 border-purple-400/60 bg-[#0F2547] flex items-center justify-center flex-shrink-0">
+                      <CheckCircle2 className="w-2.5 h-2.5 text-purple-300" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-mono text-purple-300 block mb-1">PO-2 · 3 Feb 2026</span>
+                      <p className="text-xs text-purple-100 leading-snug">Amended timetable, document production protocol (Redfern Schedule), expert evidence directions, and merits hearing arrangements (26–30 Oct 2026, 5 days, 20h per party).</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Apply button mock */}
+                <div className="px-4 py-4 border-t border-purple-500/20 bg-purple-500/5">
+                  <div className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-white text-[#0F2547] text-sm font-semibold opacity-90">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Add 16 items to case
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
