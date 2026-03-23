@@ -54,7 +54,7 @@ export default function CaseDashboard({ params }: { params: { id: string } }) {
   const [activeSection, setActiveSection] = useState<Section>("overview");
   const [searchOpen, setSearchOpen] = useState(false);
   const qc = useQueryClient();
-  const { setActiveCaseId } = useImport();
+  const { setActiveCaseId, setActiveCaseName } = useImport();
 
   const { data: caseData, isLoading } = useGetCase(caseId);
 
@@ -62,8 +62,12 @@ export default function CaseDashboard({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     setActiveCaseId(caseId);
-    return () => setActiveCaseId(null);
-  }, [caseId, setActiveCaseId]);
+    return () => { setActiveCaseId(null); setActiveCaseName(null); };
+  }, [caseId, setActiveCaseId, setActiveCaseName]);
+
+  useEffect(() => {
+    if (caseData?.caseName) setActiveCaseName(caseData.caseName);
+  }, [caseData?.caseName, setActiveCaseName]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

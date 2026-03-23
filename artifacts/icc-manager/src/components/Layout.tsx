@@ -5,7 +5,7 @@ import { useImport } from "@/lib/import-context";
 import DocumentImport from "@/components/DocumentImport";
 
 export default function Layout({ children, noPadding }: { children: React.ReactNode; noPadding?: boolean }) {
-  const { activeCaseId, importOpen, openImport, closeImport } = useImport();
+  const { activeCaseId, activeCaseName, importOpen, openImport, closeImport } = useImport();
 
   return (
     <div className="min-h-screen bg-background font-sans selection:bg-primary/20">
@@ -61,7 +61,7 @@ export default function Layout({ children, noPadding }: { children: React.ReactN
       )}
 
       {importOpen && activeCaseId !== null && (
-        <DocumentImport caseId={activeCaseId} onClose={closeImport} />
+        <DocumentImport caseId={activeCaseId} caseName={activeCaseName ?? undefined} onClose={closeImport} />
       )}
     </div>
   );
