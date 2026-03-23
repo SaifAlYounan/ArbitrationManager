@@ -40,9 +40,24 @@ artifacts-monorepo/
 
 A professional web app for managing ICC international arbitration cases.
 
+### Routing
+
+- `/` → Landing / marketing page (no app Layout)
+- `/app` → Case list (Active Proceedings dashboard)
+- `/cases/new` → New Case form
+- `/cases/:id` → Case Dashboard (navy sidebar layout)
+
+### Sample Cases (Pre-seeded)
+
+Three cases at different arbitration stages:
+1. **ICC/2025/ARB-4421** — Nexum Energy GmbH v. Republic of Latvinia (Early: 2 exhibits, 4 deadlines, sole arbitrator)
+2. **ICC/2024/ARB-8871** — Global Maritime Holdings Ltd v. Zenith Shipping SA (Mid: 5 exhibits, 1 PO, 3-member tribunal, time entries)
+3. **ICC/2023/ARB-2209** — Pacific Ventures Corp v. SingCo International Pte Ltd (Late: 9 exhibits, 3 POs, 3-member tribunal, 206h logged, SGD 60,040 disbursements, costs settings)
+
 ### Features
 
-- **Case List** (landing page): Card grid showing all cases with reference, name, parties, and status badge
+- **Landing Page** (`/`): Marketing/hero page — headline, features grid, workflow steps, lawyer quotes panel, trust bar, CTA
+- **Case List** (`/app`): Card grid showing all cases with reference, name, parties, and status badge
 - **New Case Form** (`/cases/new`): Create cases with all procedural fields
 - **Case Dashboard** (`/cases/:id`): Sidebar-based dashboard with 7 sections — Overview, Calendar, Exhibits, Procedural Orders, Hearing Logistics, Costs Tracker, Settings
   - **Sidebar**: Navy (#0F2547) left sidebar showing case reference, name, status dot, global search button (⌘K), and navigation items; mobile-friendly horizontal scroll nav on small screens

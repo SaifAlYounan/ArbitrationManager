@@ -2,12 +2,12 @@ import { Link } from "wouter";
 import { Scale, LogOut, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children, noPadding }: { children: React.ReactNode; noPadding?: boolean }) {
   return (
     <div className="min-h-screen bg-background font-sans selection:bg-primary/20">
-      <header className="sticky top-0 z-30 w-full border-b border-border bg-card/80 backdrop-blur-md shadow-sm">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-3 group">
+      <header className="sticky top-0 z-30 w-full border-b border-border bg-card/80 backdrop-blur-md shadow-sm print:hidden">
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link href="/app" className="flex items-center gap-3 group">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm group-hover:bg-primary/90 transition-colors">
               <Scale className="h-5 w-5" />
             </div>
@@ -29,15 +29,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-        >
-          {children}
-        </motion.div>
-      </main>
+      {noPadding ? (
+        <main>{children}</main>
+      ) : (
+        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            {children}
+          </motion.div>
+        </main>
+      )}
     </div>
   );
 }

@@ -83,12 +83,12 @@ export default function CaseDashboard({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="flex h-[calc(100vh-56px)]">
+    <div className="flex h-[calc(100vh-57px)]">
       {/* ── Sidebar (desktop) ── */}
       <aside className="hidden md:flex w-52 flex-shrink-0 bg-[#0F2547] flex-col print:hidden overflow-y-auto">
         {/* Back + Case Info */}
         <div className="p-4 border-b border-white/10 flex-shrink-0">
-          <Link href="/" className="flex items-center gap-1.5 text-white/60 hover:text-white text-xs mb-3 transition-colors">
+          <Link href="/app" className="flex items-center gap-1.5 text-white/60 hover:text-white text-xs mb-3 transition-colors">
             <ArrowLeft className="w-3.5 h-3.5" />
             All Cases
           </Link>
@@ -140,7 +140,7 @@ export default function CaseDashboard({ params }: { params: { id: string } }) {
       {/* ── Mobile Top Nav ── */}
       <div className="md:hidden fixed top-14 left-0 right-0 z-10 bg-[#0F2547] print:hidden">
         <div className="flex items-center gap-1 px-3 py-2 overflow-x-auto scrollbar-hide border-b border-white/10">
-          <Link href="/" className="flex-shrink-0 text-white/60 hover:text-white mr-2">
+          <Link href="/app" className="flex-shrink-0 text-white/60 hover:text-white mr-2">
             <ArrowLeft className="w-4 h-4" />
           </Link>
           {NAV_ITEMS.map((item) => (
