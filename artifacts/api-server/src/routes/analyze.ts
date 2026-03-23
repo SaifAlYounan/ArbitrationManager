@@ -70,7 +70,7 @@ Rules:
 - Dates must be in YYYY-MM-DD format or null.
 - Keep descriptions concise but professionally precise (lawyer-quality language).`;
 
-router.post("/api/analyze-document", upload.array("files", 10), async (req: Request, res: Response) => {
+router.post("/analyze-document", upload.array("files", 10), async (req: Request, res: Response) => {
   const files = req.files as Express.Multer.File[] | undefined;
   if (!files || files.length === 0) {
     return res.status(400).json({ error: "No files uploaded" });
