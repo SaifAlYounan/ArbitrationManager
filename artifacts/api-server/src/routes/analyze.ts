@@ -46,7 +46,7 @@ The JSON must follow this exact shape:
   ],
   "proceduralOrders": [
     {
-      "poNumber": "PO-1 etc or null",
+      "poNumber": "PO1 or PO2 etc (no dashes, no spaces) or null",
       "dateIssued": "YYYY-MM-DD or null",
       "summary": "concise summary of the PO directions"
     }

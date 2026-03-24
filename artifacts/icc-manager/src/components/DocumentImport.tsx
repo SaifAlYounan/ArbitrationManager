@@ -57,9 +57,12 @@ function matchDeadline(proposal: string, existing: ExistingDeadline[]): Existing
   });
 }
 
+const normPO = (s: string) =>
+  s.toLowerCase().replace(/no\.?\s*/g, "").replace(/[-\s]+/g, "").trim();
+
 function matchPO(poNum: string | null, existing: ExistingPO[]): boolean {
   if (!poNum) return false;
-  return existing.some(e => norm(e.poNumber) === norm(poNum));
+  return existing.some(e => normPO(e.poNumber) === normPO(poNum));
 }
 
 async function readFileText(file: File): Promise<string> {
