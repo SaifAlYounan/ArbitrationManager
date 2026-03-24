@@ -1,13 +1,15 @@
 import { useState, useCallback, useRef } from "react";
 import {
   X, Upload, FileText, Loader2, CheckCircle2, AlertCircle,
-  ChevronDown, ChevronUp, Calendar, Sparkles, Check, ArrowRight,
+  ChevronDown, ChevronUp, Calendar, ClipboardList, Sparkles, Check, ArrowRight,
   PlusCircle, RefreshCw, MinusCircle,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { getListDeadlinesQueryKey } from "@workspace/api-client-react";
+import { getListDeadlinesQueryKey, getListProceduralOrdersQueryKey } from "@workspace/api-client-react";
 
 interface ExistingDeadline { id: number; description: string; dueDate: string | null; }
+interface ExistingPO { id: number; poNumber: string; }
+
 type ChangeKind = "new" | "update" | "same";
 
 interface DeadlineProposal {
@@ -22,19 +24,29 @@ interface DeadlineProposal {
   notes: string | null;
 }
 
+interface POProposal {
+  _id: string;
+  checked: boolean;
+  kind: ChangeKind;
+  poNumber: string | null;
+  dateIssued: string | null;
+  summary: string;
+}
+
 interface DocResult {
   fileName: string;
   documentType: string;
   summary: string;
   notes: string;
+  rawText?: string;
   error?: string;
   deadlines: DeadlineProposal[];
+  proceduralOrders: POProposal[];
 }
 
 type Step = "upload" | "analyzing" | "review" | "applying" | "done" | "nochange";
 
 const uid = () => Math.random().toString(36).slice(2);
-
 const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
 
 function matchDeadline(proposal: string, existing: ExistingDeadline[]): ExistingDeadline | undefined {
@@ -45,15 +57,28 @@ function matchDeadline(proposal: string, existing: ExistingDeadline[]): Existing
   });
 }
 
+function matchPO(poNum: string | null, existing: ExistingPO[]): boolean {
+  if (!poNum) return false;
+  return existing.some(e => norm(e.poNumber) === norm(poNum));
+}
+
+async function readFileText(file: File): Promise<string> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve((e.target?.result as string) ?? "");
+    reader.onerror = () => resolve("");
+    reader.readAsText(file);
+  });
+}
+
 /* ── Sample document ──────────────────────────────────────────────────────── */
-const SAMPLE_DOCUMENT_NAME = "ICC-Amended-Timetable-PO2.txt";
+const SAMPLE_DOCUMENT_NAME = "ICC-ARB-8871-PO2-Amended-Timetable.txt";
 const SAMPLE_DOCUMENT_CONTENT = `PROCEDURAL ORDER NO. 2 — AMENDED TIMETABLE
 
-In the matter of ICC Arbitration Case No. ICC/2024/ARB-8871
-
-Global Maritime Holdings Ltd v. Zenith Shipping SA
-
-Issued: 18 March 2026
+Case Reference: ICC/2024/ARB-8871
+Parties:        Global Maritime Holdings Ltd v. Zenith Shipping SA
+Seat:           London
+Issued:         18 March 2026
 
 Following the joint application of both parties dated 10 March 2026 requesting
 an extension to the procedural timetable, and having reviewed the reasons
@@ -77,13 +102,18 @@ The following revised dates shall apply:
 
 2.2 The Claimant does not oppose the revised timetable.
 
-2.3 All other terms of Procedural Order No. 1 remain in full force.
+2.3 All other terms of Procedural Order No. 1 remain in full force and effect.
 
 3. COSTS
 
 Costs of this application are reserved to the final award.
 
 By order of the Tribunal.
+
+─────────────────────────────────
+Sir James Worthington QC (President)
+Prof. Claire Dubois (Co-Arbitrator)
+Dr. Hans Berger (Co-Arbitrator)
 `;
 
 function makeSampleFile(): File {
@@ -124,25 +154,23 @@ function KindBadge({ kind }: { kind: ChangeKind }) {
   );
   return (
     <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
-      <MinusCircle className="w-2.5 h-2.5" /> No change
+      <MinusCircle className="w-2.5 h-2.5" /> Already saved
     </span>
   );
 }
 
-function DeadlineRow({
-  dl, onChange,
-}: { dl: DeadlineProposal; onChange: (v: boolean) => void }) {
-  const isDisabled = dl.kind === "same";
+function DeadlineRow({ dl, onChange }: { dl: DeadlineProposal; onChange: (v: boolean) => void }) {
+  const disabled = dl.kind === "same";
   return (
-    <label className={`flex items-start gap-3 px-4 py-3 ${isDisabled ? "opacity-50" : "hover:bg-gray-50 cursor-pointer"}`}>
+    <label className={`flex items-start gap-3 px-4 py-3 ${disabled ? "opacity-50" : "hover:bg-gray-50 cursor-pointer"}`}>
       <div
         className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-          isDisabled ? "border-gray-200 bg-gray-100 cursor-not-allowed"
+          disabled ? "border-gray-200 bg-gray-100 cursor-not-allowed"
           : dl.checked ? "bg-[#0F2547] border-[#0F2547]" : "border-gray-300"
         }`}
-        onClick={() => !isDisabled && onChange(!dl.checked)}
+        onClick={() => !disabled && onChange(!dl.checked)}
       >
-        {dl.checked && !isDisabled && <Check className="w-3 h-3 text-white" />}
+        {dl.checked && !disabled && <Check className="w-3 h-3 text-white" />}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap mb-0.5">
@@ -167,6 +195,35 @@ function DeadlineRow({
   );
 }
 
+function PORow({ po, onChange }: { po: POProposal; onChange: (v: boolean) => void }) {
+  const disabled = po.kind === "same";
+  return (
+    <label className={`flex items-start gap-3 px-4 py-3 ${disabled ? "opacity-50" : "hover:bg-gray-50 cursor-pointer"}`}>
+      <div
+        className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+          disabled ? "border-gray-200 bg-gray-100 cursor-not-allowed"
+          : po.checked ? "bg-[#0F2547] border-[#0F2547]" : "border-gray-300"
+        }`}
+        onClick={() => !disabled && onChange(!po.checked)}
+      >
+        {po.checked && !disabled && <Check className="w-3 h-3 text-white" />}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap mb-0.5">
+          <p className="text-sm font-medium text-gray-900 leading-snug">
+            {po.poNumber ? `Procedural Order ${po.poNumber.replace("PO", "No. ")}` : "Procedural Order"}
+          </p>
+          <KindBadge kind={po.kind} />
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-gray-500 flex-wrap">
+          {po.dateIssued && <span>Issued: {po.dateIssued}</span>}
+          {po.summary && <span>· {po.summary.slice(0, 80)}{po.summary.length > 80 ? "…" : ""}</span>}
+        </div>
+      </div>
+    </label>
+  );
+}
+
 /* ── Main component ──────────────────────────────────────────────────────── */
 export default function DocumentImport({
   caseId, caseName, onClose,
@@ -176,8 +233,9 @@ export default function DocumentImport({
   const [files, setFiles] = useState<File[]>([]);
   const [results, setResults] = useState<DocResult[]>([]);
   const [applyError, setApplyError] = useState<string | null>(null);
-  const [addedCount, setAddedCount] = useState(0);
-  const [updatedCount, setUpdatedCount] = useState(0);
+  const [addedDl, setAddedDl] = useState(0);
+  const [updatedDl, setUpdatedDl] = useState(0);
+  const [addedPO, setAddedPO] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const qc = useQueryClient();
 
@@ -200,102 +258,106 @@ export default function DocumentImport({
     if (!files.length) return;
     setStep("analyzing");
 
-    // Fetch AI results and existing deadlines in parallel
     const fd = new FormData();
     files.forEach(f => fd.append("files", f));
 
     try {
-      const [analysisRes, deadlinesRes] = await Promise.all([
+      // Read file text + call AI + fetch existing data — all in parallel
+      const [analysisRes, deadlinesRes, posRes, ...rawTexts] = await Promise.all([
         fetch("/api/analyze-document", { method: "POST", body: fd }),
         fetch(`/api/cases/${caseId}/deadlines`),
+        fetch(`/api/cases/${caseId}/procedural-orders`),
+        ...files.map(f => readFileText(f)),
       ]);
 
       if (!analysisRes.ok) throw new Error(await analysisRes.text());
       const analysisData = await analysisRes.json();
 
       let existingDeadlines: ExistingDeadline[] = [];
+      let existingPOs: ExistingPO[] = [];
       if (deadlinesRes.ok) {
-        const rawDeadlines = await deadlinesRes.json();
-        existingDeadlines = (Array.isArray(rawDeadlines) ? rawDeadlines : []).map((d: {id: number; description: string; dueDate: string | null}) => ({
-          id: d.id,
-          description: d.description,
-          dueDate: d.dueDate,
+        const raw = await deadlinesRes.json();
+        existingDeadlines = (Array.isArray(raw) ? raw : []).map((d: ExistingDeadline) => ({
+          id: d.id, description: d.description, dueDate: d.dueDate,
+        }));
+      }
+      if (posRes.ok) {
+        const raw = await posRes.json();
+        existingPOs = (Array.isArray(raw) ? raw : []).map((p: ExistingPO) => ({
+          id: p.id, poNumber: p.poNumber,
         }));
       }
 
-      const enriched: DocResult[] = (analysisData.proposals as DocResult[]).map(doc => ({
+      const enriched: DocResult[] = (analysisData.proposals as DocResult[]).map((doc, fileIdx) => ({
         ...doc,
+        rawText: (rawTexts[fileIdx] as string | undefined) ?? "",
         deadlines: (doc.deadlines ?? []).map((d: Omit<DeadlineProposal, "_id" | "checked" | "kind" | "existingId" | "existingDate">) => {
           const match = matchDeadline(d.description, existingDeadlines);
           let kind: ChangeKind = "new";
           let existingId: number | undefined;
           let existingDate: string | null | undefined;
-
           if (match) {
             existingId = match.id;
             existingDate = match.dueDate;
-            const sameDate = norm(match.dueDate ?? "") === norm(d.dueDate ?? "");
-            kind = sameDate ? "same" : "update";
+            kind = norm(match.dueDate ?? "") === norm(d.dueDate ?? "") ? "same" : "update";
           }
-
-          return {
-            ...d,
-            _id: uid(),
-            checked: kind !== "same",
-            kind,
-            existingId,
-            existingDate,
-          };
+          return { ...d, _id: uid(), checked: kind !== "same", kind, existingId, existingDate };
+        }),
+        proceduralOrders: (doc.proceduralOrders ?? []).map((p: Omit<POProposal, "_id" | "checked" | "kind">) => {
+          const alreadyExists = matchPO(p.poNumber, existingPOs);
+          return { ...p, _id: uid(), checked: !alreadyExists, kind: alreadyExists ? "same" as ChangeKind : "new" as ChangeKind };
         }),
       }));
 
       setResults(enriched);
 
-      // If every deadline across all docs is "same", skip to no-change state
-      const allSame = enriched.every(doc => doc.deadlines.every(d => d.kind === "same"));
-      if (allSame && enriched.every(doc => !doc.error && doc.deadlines.length > 0)) {
-        setStep("nochange");
-      } else {
-        setStep("review");
-      }
+      const allSame = enriched.every(doc =>
+        !doc.error &&
+        doc.deadlines.length + doc.proceduralOrders.length > 0 &&
+        doc.deadlines.every(d => d.kind === "same") &&
+        doc.proceduralOrders.every(p => p.kind === "same")
+      );
+      setStep(allSame ? "nochange" : "review");
     } catch (err) {
       setResults([{
         fileName: "Error", documentType: "", summary: "", notes: "",
-        error: String(err), deadlines: [],
+        error: String(err), deadlines: [], proceduralOrders: [],
       }]);
       setStep("review");
     }
   };
 
-  const toggleItem = (docIdx: number, id: string) => {
-    setResults(prev => prev.map((doc, i) => {
-      if (i !== docIdx) return doc;
-      return {
-        ...doc,
-        deadlines: doc.deadlines.map(item =>
-          item._id === id ? { ...item, checked: !item.checked } : item
-        ),
-      };
+  const toggleDeadline = (docIdx: number, id: string) => {
+    setResults(prev => prev.map((doc, i) => i !== docIdx ? doc : {
+      ...doc,
+      deadlines: doc.deadlines.map(item => item._id === id ? { ...item, checked: !item.checked } : item),
     }));
   };
 
-  const toggleAll = (docIdx: number, val: boolean) => {
+  const togglePO = (docIdx: number, id: string) => {
     setResults(prev => prev.map((doc, i) => i !== docIdx ? doc : {
       ...doc,
-      deadlines: doc.deadlines.map(item =>
-        item.kind === "same" ? item : { ...item, checked: val }
-      ),
+      proceduralOrders: doc.proceduralOrders.map(item => item._id === id ? { ...item, checked: !item.checked } : item),
+    }));
+  };
+
+  const toggleAllDeadlines = (docIdx: number, val: boolean) => {
+    setResults(prev => prev.map((doc, i) => i !== docIdx ? doc : {
+      ...doc,
+      deadlines: doc.deadlines.map(item => item.kind === "same" ? item : { ...item, checked: val }),
     }));
   };
 
   const totalChecked = results.reduce((sum, doc) =>
-    sum + doc.deadlines.filter(d => d.checked && d.kind !== "same").length, 0);
+    sum +
+    doc.deadlines.filter(d => d.checked && d.kind !== "same").length +
+    doc.proceduralOrders.filter(p => p.checked && p.kind !== "same").length,
+  0);
 
   const apply = async () => {
     setStep("applying");
     setApplyError(null);
-    let added = 0;
-    let updated = 0;
+    let dl_added = 0, dl_updated = 0, po_added = 0;
     try {
       for (const doc of results) {
         for (const dl of doc.deadlines.filter(d => d.checked && d.kind !== "same")) {
@@ -311,7 +373,7 @@ export default function DocumentImport({
                 status: "Pending",
               }),
             });
-            updated++;
+            dl_updated++;
           } else {
             await fetch(`/api/cases/${caseId}/deadlines`, {
               method: "POST",
@@ -324,13 +386,30 @@ export default function DocumentImport({
                 status: "Pending",
               }),
             });
-            added++;
+            dl_added++;
           }
+        }
+        for (const po of doc.proceduralOrders.filter(p => p.checked && p.kind !== "same")) {
+          await fetch(`/api/cases/${caseId}/procedural-orders`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              poNumber: po.poNumber ?? `PO${Date.now()}`,
+              dateIssued: po.dateIssued ?? new Date().toISOString().slice(0, 10),
+              summary: po.summary,
+              draftContent: doc.rawText ?? null,
+              formattedContent: doc.rawText ?? null,
+              isFinalized: true,
+            }),
+          });
+          po_added++;
         }
       }
       qc.invalidateQueries({ queryKey: getListDeadlinesQueryKey(caseId) });
-      setAddedCount(added);
-      setUpdatedCount(updated);
+      qc.invalidateQueries({ queryKey: getListProceduralOrdersQueryKey(caseId) });
+      setAddedDl(dl_added);
+      setUpdatedDl(dl_updated);
+      setAddedPO(po_added);
       setStep("done");
     } catch (err) {
       setApplyError(String(err));
@@ -418,7 +497,7 @@ export default function DocumentImport({
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-[#0F2547]">Load sample document</p>
-                      <p className="text-xs text-blue-600 mt-0.5">PO No. 2 — amended procedural timetable for Global Maritime</p>
+                      <p className="text-xs text-blue-600 mt-0.5">PO No. 2 — amended timetable for Global Maritime Holdings</p>
                     </div>
                     <Sparkles className="w-4 h-4 text-blue-400 flex-shrink-0 group-hover:text-[#0F2547] transition-colors" />
                   </button>
@@ -449,7 +528,7 @@ export default function DocumentImport({
                     <Sparkles className="w-4 h-4 text-blue-400 absolute -top-1 -right-1" />
                   </div>
                   <p className="font-medium text-gray-800">Analysing document…</p>
-                  <p className="text-sm text-gray-500">Extracting deadlines and comparing with case record</p>
+                  <p className="text-sm text-gray-500">Extracting deadlines and orders, comparing with case record</p>
                 </div>
               )}
             </div>
@@ -489,6 +568,21 @@ export default function DocumentImport({
                       )}
 
                       <Section
+                        title="Procedural Orders"
+                        icon={<ClipboardList className="w-4 h-4" />}
+                        color="bg-purple-50 text-purple-800"
+                        count={doc.proceduralOrders.length}
+                      >
+                        {doc.proceduralOrders.map(po => (
+                          <PORow
+                            key={po._id}
+                            po={po}
+                            onChange={v => { po.checked = v; togglePO(docIdx, po._id); }}
+                          />
+                        ))}
+                      </Section>
+
+                      <Section
                         title="Deadlines"
                         icon={<Calendar className="w-4 h-4" />}
                         color="bg-orange-50 text-orange-800"
@@ -499,23 +593,23 @@ export default function DocumentImport({
                             {doc.deadlines.filter(d => d.checked).length} of {doc.deadlines.filter(d => d.kind !== "same").length} changes selected
                           </span>
                           <div className="flex gap-2">
-                            <button onClick={() => toggleAll(docIdx, true)} className="text-xs text-[#0F2547] hover:underline">All</button>
-                            <button onClick={() => toggleAll(docIdx, false)} className="text-xs text-gray-400 hover:underline">None</button>
+                            <button onClick={() => toggleAllDeadlines(docIdx, true)} className="text-xs text-[#0F2547] hover:underline">All</button>
+                            <button onClick={() => toggleAllDeadlines(docIdx, false)} className="text-xs text-gray-400 hover:underline">None</button>
                           </div>
                         </div>
                         {doc.deadlines.map(dl => (
                           <DeadlineRow
                             key={dl._id}
                             dl={dl}
-                            onChange={v => { dl.checked = v; toggleItem(docIdx, dl._id); }}
+                            onChange={v => { dl.checked = v; toggleDeadline(docIdx, dl._id); }}
                           />
                         ))}
                       </Section>
 
-                      {doc.deadlines.length === 0 && (
+                      {doc.deadlines.length === 0 && doc.proceduralOrders.length === 0 && (
                         <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-600">
                           <AlertCircle className="w-4 h-4 text-gray-400" />
-                          No deadline data found in this document.
+                          No structured case data found in this document.
                         </div>
                       )}
                     </>
@@ -534,7 +628,7 @@ export default function DocumentImport({
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">No changes required</h3>
                 <p className="text-sm text-gray-500 mt-1 max-w-xs mx-auto">
-                  All deadlines from this document are already recorded in the case with matching dates.
+                  Everything in this document is already recorded in the case with matching dates and details.
                 </p>
               </div>
             </div>
@@ -548,13 +642,12 @@ export default function DocumentImport({
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Case record updated</h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  {[
-                    updatedCount > 0 && `${updatedCount} deadline${updatedCount !== 1 ? "s" : ""} updated`,
-                    addedCount > 0 && `${addedCount} deadline${addedCount !== 1 ? "s" : ""} added`,
-                  ].filter(Boolean).join(" · ")}
-                </p>
-                <p className="text-xs text-gray-400 mt-1">Review the Deadlines tab to confirm.</p>
+                <div className="text-sm text-gray-500 mt-1 space-y-0.5">
+                  {addedPO > 0 && <p>{addedPO} procedural order{addedPO !== 1 ? "s" : ""} added</p>}
+                  {updatedDl > 0 && <p>{updatedDl} deadline{updatedDl !== 1 ? "s" : ""} updated</p>}
+                  {addedDl > 0 && <p>{addedDl} deadline{addedDl !== 1 ? "s" : ""} added</p>}
+                </div>
+                <p className="text-xs text-gray-400 mt-2">Check the Deadlines and Procedural Orders tabs to confirm.</p>
               </div>
             </div>
           )}

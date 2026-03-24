@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Trash2, Edit3, FileText, CheckCircle2, Clock, ChevronDown, ChevronUp,
-  CalendarClock, BookOpen, Gavel, AlertCircle, Eye, EyeOff
+  CalendarClock, BookOpen, Gavel, AlertCircle, Eye, EyeOff, Download, Square, SquareCheck
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -335,17 +335,42 @@ function POModal({ isOpen, onClose, onSave, isPending, initial, nextPoNumber, ca
   );
 }
 
+// ─── PO Download helper ───────────────────────────────────────────────────────
+function downloadPOAsText(po: ProceduralOrder, caseRef: string) {
+  const content = po.formattedContent
+    || `PROCEDURAL ORDER ${po.poNumber.replace("PO", "NO. ")}
+
+Case: ${caseRef}
+Date Issued: ${po.dateIssued}
+
+KEY DIRECTIONS
+
+${po.summary}
+`;
+  const blob = new Blob([content], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${caseRef}-${po.poNumber}.txt`.replace(/\//g, "-");
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ─── PO Card ──────────────────────────────────────────────────────────────────
 function POCard({
   po,
+  caseRef,
   onEdit,
   onDelete,
   onApplyToDeadlines,
+  onToggleFinalized,
 }: {
   po: ProceduralOrder;
+  caseRef: string;
   onEdit: () => void;
   onDelete: () => void;
   onApplyToDeadlines: () => void;
+  onToggleFinalized: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -390,20 +415,50 @@ function POCard({
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+
+          {/* Actions — always-visible download + acknowledge, hover for edit/delete */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {/* Download */}
             <button
-              onClick={onApplyToDeadlines}
-              className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-              title="Apply to deadlines"
+              onClick={() => downloadPOAsText(po, caseRef)}
+              className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              title="Download as .txt"
             >
-              <CalendarClock className="w-3.5 h-3.5" /> Update Deadlines
+              <Download className="w-4 h-4" />
             </button>
-            <button onClick={onEdit} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-colors" title="Edit">
-              <Edit3 className="w-4 h-4" />
+
+            {/* Acknowledge / mark finalized */}
+            <button
+              onClick={onToggleFinalized}
+              className={cn(
+                "p-1.5 rounded-md transition-colors",
+                po.isFinalized
+                  ? "text-green-600 hover:bg-green-50"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+              title={po.isFinalized ? "Mark as draft" : "Mark as acknowledged / finalized"}
+            >
+              {po.isFinalized
+                ? <SquareCheck className="w-4 h-4" />
+                : <Square className="w-4 h-4" />
+              }
             </button>
-            <button onClick={onDelete} className="p-1.5 rounded-md hover:bg-red-100 text-muted-foreground hover:text-red-600 transition-colors" title="Delete">
-              <Trash2 className="w-4 h-4" />
-            </button>
+
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+              <button
+                onClick={onApplyToDeadlines}
+                className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                title="Apply to deadlines"
+              >
+                <CalendarClock className="w-3.5 h-3.5" /> Update Deadlines
+              </button>
+              <button onClick={onEdit} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-colors" title="Edit">
+                <Edit3 className="w-4 h-4" />
+              </button>
+              <button onClick={onDelete} className="p-1.5 rounded-md hover:bg-red-100 text-muted-foreground hover:text-red-600 transition-colors" title="Delete">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -414,14 +469,14 @@ function POCard({
           <p className="text-sm text-muted-foreground leading-relaxed">{po.summary}</p>
         </div>
 
-        {po.formattedContent && (
+        {(po.formattedContent || po.draftContent) && (
           <div className="mt-4">
             <button
               onClick={() => setExpanded(v => !v)}
               className="flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
             >
               <FileText className="w-3.5 h-3.5" />
-              {expanded ? "Hide Formatted PO" : "View Formatted PO"}
+              {expanded ? "Hide Full Document" : "View Full Document"}
               {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </button>
             <AnimatePresence>
@@ -433,7 +488,7 @@ function POCard({
                   className="mt-3 overflow-hidden"
                 >
                   <div className="rounded-lg bg-slate-50 border border-slate-200 p-4 font-mono text-xs whitespace-pre-wrap text-slate-700 max-h-80 overflow-y-auto leading-relaxed">
-                    {po.formattedContent}
+                    {po.formattedContent || po.draftContent}
                   </div>
                 </motion.div>
               )}
@@ -589,10 +644,11 @@ export default function ProceduralOrders({ caseId, caseRef }: ProceduralOrdersPr
         </div>
       ) : (
         <div className="space-y-4">
-          {sorted.map((po, i) => (
+          {sorted.map((po) => (
             <POCard
               key={po.id}
               po={po}
+              caseRef={caseRef}
               onEdit={() => setEditPO(po)}
               onDelete={() => {
                 if (confirm(`Delete ${po.poNumber}? This cannot be undone.`)) {
@@ -600,6 +656,11 @@ export default function ProceduralOrders({ caseId, caseRef }: ProceduralOrdersPr
                 }
               }}
               onApplyToDeadlines={() => setLinkModal({ poId: po.id, poNumber: po.poNumber })}
+              onToggleFinalized={() => updatePO.mutate({
+                caseId,
+                poId: po.id,
+                data: { isFinalized: !po.isFinalized },
+              })}
             />
           ))}
         </div>
