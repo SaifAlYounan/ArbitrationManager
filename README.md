@@ -20,7 +20,7 @@ This is an attempt to fix that.
 
 A full-stack web application for managing ICC international arbitration cases end-to-end. It covers the full procedural lifecycle: from case creation through tribunal constitution, exhibit registration, procedural orders, hearing logistics, costs tracking, and deadline management — all in one place, with the ICC Rules baked in.
 
-It was built during Paris Arbitration Week 2025 and released as a free, open-source tool.
+It was built during Paris Arbitration Week 2026 and released as a free, open-source tool.
 
 ---
 
