@@ -204,5 +204,4 @@ MIT
 
 ## Author
 
-[Saif Al Younan](https://github.com/SaifAlYounan)  
-Deployed on Replit · Conceptual design by [Alexios Vavdaskis](https://www.linkedin.com/in/alexios-vavdaskis/)
+Alexios van der Slikke-Kirillov
