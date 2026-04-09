@@ -4,8 +4,6 @@
 
 > **⚠️ Proof of concept.** This is an open-source demo showing how far AI-assisted development can take practitioner-designed arbitration tooling. It is not production software. It has not been security audited or hardened for real-world use. The production version is whatever you make of it — fork it, customise it, harden it, make it yours. This repo exists to show what's possible.
 
-**Live app**: [replit.com/@alexiosvdsk/Arbitration-Case-Manager](https://replit.com/@alexiosvdsk/Arbitration-Case-Manager)
-
 ---
 
 ## The Problem
